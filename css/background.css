@@ -1,0 +1,16 @@
+/* Estilos base para el background animado en todas las pantallas */
+body.retro-background {
+    background: 
+        linear-gradient(135deg, #1f0202 0%, #2e2323 25%, #1a1a2e 50%, #2e2323 75%, #1f0202 100%);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Canvas será agregado por JavaScript */
+.background-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -2;
+    pointer-events: none;
+}
