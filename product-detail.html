@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Joya - Royal Gems</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/website.css">
+    <style>
+        .detail-container {
+            padding: 120px var(--space-lg) var(--space-3xl);
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-3xl);
+            min-height: 80vh;
+        }
+
+        .gallery-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .detail-image {
+            background: linear-gradient(135deg, #101010, #000);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-2xl);
+            box-shadow: var(--shadow-lg);
+            aspect-ratio: 1/1;
+            overflow: hidden;
+        }
+
+        .detail-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+            transition: var(--transition);
+        }
+
+        .thumbnails {
+            display: flex;
+            gap: var(--space-sm);
+            overflow-x: auto;
+            padding-bottom: var(--space-xs);
+        }
+
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            cursor: pointer;
+            opacity: 0.6;
+            transition: var(--transition);
+            background: #000;
+        }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            opacity: 1;
+            border-color: var(--primary-red);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+        }
+
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: var(--radius);
+        }
+
+        .detail-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .detail-category {
+            color: var(--primary-red);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: var(--space-sm);
+            font-size: 0.9rem;
+        }
+
+        .detail-title {
+            font-size: 3rem;
+            color: var(--text-primary);
+            margin-bottom: var(--space-md);
+            line-height: 1.1;
+        }
+
+        .detail-price {
+            font-size: 2.5rem;
+            color: var(--text-primary);
+            font-weight: 300;
+            margin-bottom: var(--space-xl);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .detail-price span {
+            color: var(--primary-red);
+            font-weight: bold;
+        }
+
+        .detail-description {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: var(--space-2xl);
+            border-left: 2px solid var(--primary-red);
+            padding-left: var(--space-lg);
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: var(--space-md);
+        }
+
+        .btn-add {
+            background: var(--primary-red);
+            color: #000;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: var(--transition);
+            flex: 1;
+        }
+
+        .btn-add:hover {
+            background: var(--text-primary);
+            color: var(--primary-red);
+            box-shadow: var(--glow-red);
+        }
+
+        @media (max-width: 768px) {
+            .detail-container {
+                grid-template-columns: 1fr;
+                padding-top: 100px;
+            }
+
+            .detail-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="auto-retro-bg" data-intensity="low">
+
+    <header class="website-header">
+        <div class="navbar-container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">EIBELSTORE</a>
+                <ul class="nav-center">
+                    <li><a href="index.html">Inicio</a></li>
+                    <li><a href="products.html">Colección</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="detail-container">
+        <div class="gallery-wrapper">
+            <div class="detail-image" id="imgContainer">
+                <!-- Main Image Injected Here -->
+            </div>
+            <div class="thumbnails" id="thumbContainer">
+                <!-- Thumbnails Injected Here -->
+            </div>
+        </div>
+
+        <div class="detail-info">
+            <span class="detail-category" id="catDisplay">Categoría</span>
+            <h1 class="detail-title" id="titleDisplay">Cargando...</h1>
+            <div class="detail-price">
+                <span id="priceDisplay">...</span>
+            </div>
+            <p class="detail-description" id="descDisplay">
+                Obteniendo detalles de la joya...
+            </p>
+            <div class="detail-actions">
+                <button class="btn-add">Añadir al Carrito</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/data.js"></script>
+    <script src="js/cart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const id = parseInt(params.get('id'));
+
+            if (!id || !window.products) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const product = window.products.find(p => p.id === id);
+
+            if (product) {
+                // Info
+                document.getElementById('titleDisplay').textContent = product.title;
+                document.getElementById('priceDisplay').textContent = `$${product.price.toLocaleString()}`;
+                document.getElementById('catDisplay').textContent = product.category;
+                document.getElementById('descDisplay').textContent = product.description;
+
+                // Add to Cart Logic
+                const addBtn = document.querySelector('.btn-add');
+                addBtn.onclick = () => {
+                    Cart.addItem(product);
+                    // Optional button feedback
+                    const originalText = addBtn.textContent;
+                    addBtn.textContent = "¡Añadido!";
+                    setTimeout(() => addBtn.textContent = originalText, 2000);
+                };
+
+                // Gallery Logic
+                const imgContainer = document.getElementById('imgContainer');
+                const thumbContainer = document.getElementById('thumbContainer');
+
+                // Use 'images' array if available, else fallback to single 'image'
+                const images = product.images && product.images.length > 0 ? product.images : [product.image];
+
+                // Set Initial Main Image
+                const mainImg = document.createElement('img');
+                mainImg.src = images[0];
+                mainImg.alt = product.title;
+                imgContainer.appendChild(mainImg);
+
+                // Create Thumbnails
+                if (images.length > 1) {
+                    images.forEach((imgSrc, index) => {
+                        const thumb = document.createElement('div');
+                        thumb.className = `thumbnail ${index === 0 ? 'active' : ''}`;
+                        thumb.innerHTML = `<img src="${imgSrc}" alt="Vista ${index + 1}">`;
+
+                        thumb.onclick = () => {
+                            // Update Main Image
+                            mainImg.src = imgSrc;
+                            // Update Active State
+                            document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+                            thumb.classList.add('active');
+                        };
+
+                        thumbContainer.appendChild(thumb);
+                    });
+                } else {
+                    thumbContainer.style.display = 'none'; // Hide if only 1 image
+                }
+
+            } else {
+                document.body.innerHTML = "<h1 style='color:white;text-align:center;margin-top:200px'>Producto no encontrado</h1>";
+                setTimeout(() => window.location.href = 'products.html', 2000);
+            }
+        });
+    </script>
+</body>
+
+</html>

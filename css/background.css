@@ -1,16 +1,1 @@
-/* Estilos base para el background animado en todas las pantallas */
-body.retro-background {
-    background: 
-        linear-gradient(135deg, #1f0202 0%, #2e2323 25%, #1a1a2e 50%, #2e2323 75%, #1f0202 100%);
-    position: relative;
-    overflow-x: hidden;
-}
-
-/* Canvas será agregado por JavaScript */
-.background-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: -2;
-    pointer-events: none;
-}
+﻿⨯䔠瑳汩獯戠獡⁥慰慲攠⁬慢正牧畯摮愠楮慭潤攠⁮潴慤⁳慬⁳慰瑮污慬⁳⼪਍潢祤爮瑥潲戭捡杫潲湵⁤ൻ †戠捡杫潲湵㩤ഠ †††氠湩慥⵲牧摡敩瑮ㄨ㔳敤Ⱨ⌠昱㈰㈰〠Ⱕ⌠攲㌲㌲㈠┵‬ㄣㅡ㉡⁥〵Ⱕ⌠攲㌲㌲㜠┵‬ㄣて〲′〱┰㬩਍††潰楳楴湯›敲慬楴敶഻ †漠敶晲潬⵷㩸栠摩敤㭮਍ൽഊ⼊‪慃癮獡猠牥ꇃ愠牧来摡⁯潰⁲慊慶捓楲瑰⨠യ⸊慢正牧畯摮挭湡慶⁳ൻ †瀠獯瑩潩㩮映硩摥഻ †琠灯›㬰਍††敬瑦›㬰਍††⵺湩敤㩸ⴠ㬲਍††潰湩整⵲癥湥獴›潮敮഻紊
