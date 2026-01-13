@@ -50,24 +50,82 @@ document.addEventListener('DOMContentLoaded', function () {
         items.forEach(product => {
             const card = document.createElement('div');
             card.className = 'product-card';
-            card.onclick = () => {
-                window.location.href = `product-detail.html?id=${product.id}`;
+
+            card.onclick = (e) => {
+                if (!e.target.closest('.card-btn-add')) {
+                    window.location.href = `product-detail.html?id=${product.id}`;
+                }
             };
 
             const badgeHtml = product.badge ? `<div class="product-badge">${product.badge}</div>` : '';
 
+            // Image Logic
+            const hasMultipleImages = product.images && product.images.length > 1;
+            const displayImage = (product.images && product.images.length > 0) ? product.images[0] : product.image;
+            const imgId = `prod-img-${product.id}`;
+
             card.innerHTML = `
                 <div class="product-image">
-                    <img src="${product.image}" alt="${product.title}" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img id="${imgId}" src="${displayImage}" alt="${product.title}" style="width: 100%; height: 100%; object-fit: contain; transition: opacity 0.5s ease;">
                     ${badgeHtml}
                 </div>
                 <div class="product-info">
                     <h3 class="product-title">${product.title}</h3>
                     <p class="product-category">${product.category}</p>
                     <p class="product-price">$${product.price.toLocaleString()}</p>
+                    <div class="product-actions">
+                        <button class="card-btn-add" data-id="${product.id}">Añadir al Carrito</button>
+                    </div>
                 </div>
             `;
             productsGrid.appendChild(card);
+
+            // Add to Cart Logic
+            const btn = card.querySelector('.card-btn-add');
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                Cart.addItem(product);
+                btn.textContent = "¡Añadido!";
+                btn.classList.add('added');
+                setTimeout(() => {
+                    btn.textContent = "Añadir al Carrito";
+                    btn.classList.remove('added');
+                }, 2000);
+            };
+
+            // Hover Rotate Images
+            if (hasMultipleImages) {
+                let intervalId = null;
+                let imgIdx = 0;
+                const imgEl = document.getElementById(imgId);
+
+                card.addEventListener('mouseenter', () => {
+                    if (intervalId) return;
+
+                    intervalId = setInterval(() => {
+                        imgEl.style.opacity = 0;
+                        setTimeout(() => {
+                            imgIdx = (imgIdx + 1) % product.images.length;
+                            imgEl.src = product.images[imgIdx];
+                            imgEl.style.opacity = 1;
+                        }, 200);
+                    }, 1500);
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    if (intervalId) {
+                        clearInterval(intervalId);
+                        intervalId = null;
+                    }
+                    // Reset to main image
+                    imgEl.style.opacity = 0;
+                    setTimeout(() => {
+                        imgIdx = 0;
+                        imgEl.src = displayImage;
+                        imgEl.style.opacity = 1;
+                    }, 200);
+                });
+            }
         });
     }
 

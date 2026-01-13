@@ -1,5 +1,6 @@
 // Cart Logic
 const Cart = {
+    whatsappNumber: '595981000000', // Reemplazar con el número del negocio
     items: [],
     isOpen: false,
 
@@ -42,6 +43,29 @@ const Cart = {
                 this.removeItem(id);
             }
         });
+
+        // Checkout Button (Dynamic)
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.checkout-btn')) {
+                this.openCheckout();
+            }
+        });
+
+        // Checkout Modal Events
+        const checkoutForm = document.getElementById('checkout-form');
+        if (checkoutForm) {
+            checkoutForm.addEventListener('submit', (e) => this.submitOrder(e));
+        }
+
+        const closeCheckout = document.getElementById('close-checkout');
+        if (closeCheckout) {
+            closeCheckout.addEventListener('click', () => this.closeCheckout());
+        }
+
+        const checkoutOverlay = document.getElementById('checkout-overlay');
+        if (checkoutOverlay) {
+            checkoutOverlay.addEventListener('click', () => this.closeCheckout());
+        }
     },
 
     addItem(product) {
@@ -67,6 +91,79 @@ const Cart = {
         this.save();
         this.renderCartCount();
         this.renderCartItems();
+    },
+
+    openCheckout() {
+        this.closeCart();
+        const modal = document.getElementById('checkout-modal');
+        const overlay = document.getElementById('checkout-overlay');
+        if (modal && overlay) {
+            modal.classList.add('active');
+            overlay.classList.add('active');
+        }
+    },
+
+    closeCheckout() {
+        const modal = document.getElementById('checkout-modal');
+        const overlay = document.getElementById('checkout-overlay');
+        if (modal && overlay) {
+            modal.classList.remove('active');
+            overlay.classList.remove('active');
+        }
+    },
+
+    submitOrder(e) {
+        e.preventDefault();
+
+        if (this.items.length === 0) {
+            alert('Tu carrito está vacío 🛒');
+            return;
+        }
+
+        const name = document.getElementById('customer-name').value;
+        const address = document.getElementById('customer-address').value;
+        const payment = document.getElementById('payment-method').value;
+
+        if (!name || !address) {
+            alert('Por favor completa los campos requeridos');
+            return;
+        }
+
+        // WhatsApp Format
+        let message = `*HOLA VIDALAB! NUEVO PEDIDO WEB* 🛒\n\n`;
+        message += `👤 *Cliente:* ${name}\n`;
+        message += `📍 *Dirección:* ${address}\n`;
+        message += `💳 *Pago:* ${payment}\n`;
+        message += `----------------------------\n`;
+        message += `*DETALLE:*\n\n`;
+
+        let total = 0;
+        this.items.forEach(item => {
+            const subtotal = item.price * item.quantity;
+            total += subtotal;
+            message += `▪️ ${item.title} (x${item.quantity})\n`;
+            message += `   └─ ${subtotal.toLocaleString('es-PY')} Gs.\n`;
+        });
+
+        message += `\n----------------------------\n`;
+        message += `💰 *TOTAL A PAGAR: ${total.toLocaleString('es-PY')} Gs.*\n`;
+        message += `----------------------------\n`;
+        message += `(El costo de envío y ubicación se coordinarán en el chat).`;
+
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappUrl = `https://wa.me/${this.whatsappNumber}?text=${encodedMessage}`;
+
+        window.open(whatsappUrl, '_blank');
+
+        // Optional: Clear cart after successful order? 
+        // Typically yes, but maybe user wants to keep it if they come back. 
+        // I'll leave it for now or maybe clear it. 
+        // Prompt didn't specify clearing cart. I will clear it to be nice.
+        this.items = [];
+        this.save();
+        this.renderCartItems();
+        this.renderCartCount();
+        this.closeCheckout();
     },
 
     save() {
