@@ -235,6 +235,43 @@ body {
     padding-left: var(--space-xl);
 }
 
+/* Submenu Styling */
+.submenu {
+    list-style: none;
+    padding-left: 20px;
+    display: none;
+    /* Hidden by default */
+    margin-bottom: 10px;
+}
+
+.submenu.active {
+    display: block;
+}
+
+.submenu li a {
+    font-size: 0.8rem;
+    padding: 8px 10px;
+    color: var(--text-muted);
+}
+
+.submenu li a:hover {
+    color: var(--primary-red);
+    background: transparent;
+    padding-left: 10px;
+}
+
+.has-submenu>a::after {
+    content: '▼';
+    font-size: 0.6em;
+    float: right;
+    margin-top: 4px;
+    transition: transform 0.3s;
+}
+
+.has-submenu.open>a::after {
+    transform: rotate(180deg);
+}
+
 .search-container {
     padding-top: var(--space-xl);
     border-top: 1px solid var(--border-color);
@@ -487,8 +524,8 @@ body {
 
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: var(--space-xl);
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-lg);
     max-width: 1400px;
     margin: 0 auto;
 }
@@ -1147,3 +1184,69 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4);
 }
+/* Admin Styles */
+.card-btn-edit, .card-btn-delete {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-right: 5px;
+}
+.card-btn-edit { background: #ffc107; color: #000; }
+.card-btn-delete { background: #dc3545; color: #fff; }
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+.modal-content {
+    background: #222;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    color: #fff;
+    border: 1px solid #444;
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.close-modal {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; margin-bottom: 0.5rem; }
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 0.5rem;
+    background: #333;
+    border: 1px solid #555;
+    color: #fff;
+    border-radius: 4px;
+}
+.btn-save {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--primary-red);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+

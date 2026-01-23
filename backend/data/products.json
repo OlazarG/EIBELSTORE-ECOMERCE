@@ -1,0 +1,50 @@
+[
+    {
+        "id": 1700000000001,
+        "title": "Smartphone X Pro",
+        "category": "Electronica",
+        "price": 3500000,
+        "image": "https://placehold.co/600x400?text=Smartphone+X",
+        "description": "Latest model with high resolution camera.",
+        "stock": 10
+    },
+    {
+        "id": 1700000000002,
+        "title": "Auriculares Inalámbricos",
+        "category": "Audio",
+        "price": 450000,
+        "image": "https://placehold.co/600x400?text=Headphones",
+        "description": "Noise cancelling headphones.",
+        "stock": 25
+    },
+    {
+        "id": 1700000000003,
+        "title": "Monitor 4K 27 pulgadas",
+        "category": "Computacion",
+        "price": 1800000,
+        "image": "https://placehold.co/600x400?text=Monitor",
+        "description": "Crystal clear display for professionals.",
+        "stock": 5
+    },
+    {
+        "id": "1700000000004",
+        "title": "Teclado ",
+        "category": "Collares",
+        "price": 650000,
+        "image": "https://placehold.co/600x400?text=Keyboard",
+        "description": "Tactile switches with customizable lighting.",
+        "stock": 15,
+        "badge": "wewqeqw"
+    },
+    {
+        "id": 1769200816197,
+        "title": "Test",
+        "category": "Anillos",
+        "subcategory": "231",
+        "price": 231313,
+        "stock": "1",
+        "badge": "sadasd",
+        "description": "adsad",
+        "images": []
+    }
+]

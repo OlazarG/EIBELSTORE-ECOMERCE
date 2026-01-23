@@ -228,7 +228,7 @@ const Cart = {
                     </div>
                     <div class="cart-item-info">
                         <h4>${item.title}</h4>
-                        <p>${item.quantity} x $${item.price.toLocaleString()}</p>
+                        <p>${item.quantity} x Gs. ${item.price.toLocaleString('es-PY')}</p>
                     </div>
                     <button class="remove-item" data-id="${item.id}">×</button>
                 `;
@@ -237,7 +237,7 @@ const Cart = {
         }
 
         if (totalEl) {
-            totalEl.textContent = `$${total.toLocaleString()}`;
+            totalEl.textContent = `Gs. ${total.toLocaleString('es-PY')}`;
         }
     }
 };
@@ -259,13 +259,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="cart-footer">
                     <div class="cart-total">
                         <span>Total:</span>
-                        <span class="cart-total-price">$0</span>
+                        <span class="cart-total-price">Gs. 0</span>
                     </div>
                     <button class="btn checkout-btn">Finalizar Compra</button>
                 </div>
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', cartHTML);
+    }
+
+    // Inject Checkout Modal if not present (Fix for product-detail)
+    if (!document.getElementById('checkout-modal')) {
+        const checkoutHTML = `
+             <div id="checkout-overlay" class="checkout-overlay"></div>
+            <div id="checkout-modal" class="checkout-modal">
+                <div class="checkout-header">
+                    <h2>Finalizar Pedido</h2>
+                    <button id="close-checkout" class="close-checkout">×</button>
+                </div>
+                <div class="checkout-body">
+                    <form id="checkout-form">
+                        <div class="form-group">
+                            <label for="customer-name">Nombre Completo *</label>
+                            <input type="text" id="customer-name" required placeholder="Ej: Juan Pérez">
+                        </div>
+                        <div class="form-group">
+                            <label for="customer-address">Dirección de Entrega *</label>
+                            <input type="text" id="customer-address" required placeholder="Ej: Av. España 123">
+                        </div>
+                        <div class="form-group">
+                            <label for="payment-method">Método de Pago *</label>
+                            <select id="payment-method" required>
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Transferencia">Transferencia Bancaria</option>
+                                <option value="QR">Pago QR</option>
+                            </select>
+                        </div>
+                        <div class="checkout-actions">
+                            <button type="submit" class="btn-whatsapp">
+                                Enviar Pedido a WhatsApp 📱
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', checkoutHTML);
     }
 
     Cart.init();

@@ -262,57 +262,109 @@
     <script src="js/data.js"></script>
     <script src="js/cart.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const id = parseInt(params.get('id'));
+        const API_URL = 'http://localhost:3000/api/products';
+        const STATIC_URL = 'http://localhost:3000';
 
-            if (!id || !window.products) {
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id'); // Don't parseInt yet, handle string/number IDs flexibly
+
+            if (!id) {
                 window.location.href = 'index.html';
                 return;
             }
 
-            const product = window.products.find(p => p.id === id);
+            let product = null;
+
+            // Try fetching from API first
+            try {
+                const res = await fetch(`${API_URL}/${id}`);
+                if (res.ok) {
+                    const apiProduct = await res.json();
+
+                    // Normalize Images
+                    let mainImg = apiProduct.image_url || apiProduct.image;
+                    if (mainImg && mainImg.startsWith('/uploads')) {
+                        mainImg = STATIC_URL + mainImg;
+                    }
+
+                    // Normalize Gallery
+                    let images = [];
+                    if (apiProduct.gallery_urls) {
+                        try {
+                            const parsed = typeof apiProduct.gallery_urls === 'string' ? JSON.parse(apiProduct.gallery_urls) : apiProduct.gallery_urls;
+                            images = Array.isArray(parsed) ? parsed : [];
+                        } catch (e) { images = []; }
+                    }
+
+                    // Add URL prefix to gallery items if needed
+                    images = images.map(img => img.startsWith('/uploads') ? STATIC_URL + img : img);
+
+                    // If gallery is empty or doesn't have main image, ensuring main image is first
+                    if (images.length === 0 && mainImg) images = [mainImg];
+                    else if (mainImg && !images.includes(mainImg)) images.unshift(mainImg);
+
+                    product = {
+                        ...apiProduct,
+                        price: Number(apiProduct.price),
+                        image: mainImg,
+                        images: images
+                    };
+                }
+            } catch (e) {
+                console.warn("API Error, checking static data", e);
+            }
+
+            // Fallback to static data if API failed or returned 404
+            if (!product && window.products) {
+                product = window.products.find(p => p.id == id);
+            }
 
             if (product) {
                 // Info
                 document.getElementById('titleDisplay').textContent = product.title;
-                document.getElementById('priceDisplay').textContent = `$${product.price.toLocaleString()}`;
-                document.getElementById('catDisplay').textContent = product.category;
-                document.getElementById('descDisplay').textContent = product.description;
+                document.getElementById('priceDisplay').textContent = `Gs. ${product.price ? product.price.toLocaleString('es-PY') : '0'}`;
+                document.getElementById('catDisplay').textContent = product.category || 'Sin Categoría';
+                document.getElementById('descDisplay').textContent = product.description || 'Sin descripción';
 
                 // Add to Cart Logic
                 const addBtn = document.querySelector('.btn-add');
                 addBtn.onclick = () => {
-                    Cart.addItem(product);
-                    // Optional button feedback
-                    const originalText = addBtn.textContent;
-                    addBtn.textContent = "¡Añadido!";
-                    setTimeout(() => addBtn.textContent = originalText, 2000);
+                    if (typeof Cart !== 'undefined') {
+                        Cart.addItem(product);
+                        const originalText = addBtn.textContent;
+                        addBtn.textContent = "¡Añadido!";
+                        setTimeout(() => addBtn.textContent = originalText, 2000);
+                    }
                 };
 
                 // Gallery Logic
                 const imgContainer = document.getElementById('imgContainer');
                 const thumbContainer = document.getElementById('thumbContainer');
+                imgContainer.innerHTML = ''; // Clear placeholder
+                thumbContainer.innerHTML = '';
 
                 // Use 'images' array if available, else fallback to single 'image'
-                const images = product.images && product.images.length > 0 ? product.images : [product.image];
+                const images = product.images && product.images.length > 0 ? product.images : (product.image ? [product.image] : ['https://placehold.co/500x500?text=No+Image']);
 
                 // Set Initial Main Image
-                const mainImg = document.createElement('img');
-                mainImg.src = images[0];
-                mainImg.alt = product.title;
-                imgContainer.appendChild(mainImg);
+                const mainImgEl = document.createElement('img');
+                mainImgEl.src = images[0];
+                mainImgEl.alt = product.title;
+                mainImgEl.onerror = function () { this.src = 'https://placehold.co/500x500?text=No+Image'; };
+                imgContainer.appendChild(mainImgEl);
 
                 // Create Thumbnails
                 if (images.length > 1) {
+                    thumbContainer.style.display = 'flex';
                     images.forEach((imgSrc, index) => {
                         const thumb = document.createElement('div');
                         thumb.className = `thumbnail ${index === 0 ? 'active' : ''}`;
-                        thumb.innerHTML = `<img src="${imgSrc}" alt="Vista ${index + 1}">`;
+                        thumb.innerHTML = `<img src="${imgSrc}" alt="Vista ${index + 1}" onerror="this.src='https://placehold.co/100x100?text=Error'">`;
 
                         thumb.onclick = () => {
                             // Update Main Image
-                            mainImg.src = imgSrc;
+                            mainImgEl.src = imgSrc;
                             // Update Active State
                             document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
                             thumb.classList.add('active');

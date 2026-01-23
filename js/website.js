@@ -87,14 +87,68 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function loadFeaturedProducts() {
+    async function loadFeaturedProducts() {
         const productsGrid = document.querySelector('.products-grid');
-        if (!productsGrid || !window.products) return;
+        if (!productsGrid) return;
+
+        const API_URL = 'http://localhost:3000/api/products';
+        const STATIC_URL = 'http://localhost:3000';
+
+        let products = [];
+
+        try {
+            const res = await fetch(API_URL);
+            if (res.ok) {
+                const apiProducts = await res.json();
+
+                // Process Products (Image paths & Types)
+                products = apiProducts.map(p => {
+                    // Normalize Images
+                    let mainImg = p.image_url || p.image;
+                    if (mainImg && mainImg.startsWith('/uploads')) {
+                        mainImg = STATIC_URL + mainImg;
+                    }
+
+                    // Normalize Gallery
+                    let images = [];
+                    if (p.gallery_urls) {
+                        try {
+                            const parsed = typeof p.gallery_urls === 'string' ? JSON.parse(p.gallery_urls) : p.gallery_urls;
+                            images = Array.isArray(parsed) ? parsed : [];
+                        } catch (e) { images = []; }
+                    }
+
+                    // Add URL prefix to gallery items
+                    images = images.map(img => img.startsWith('/uploads') ? STATIC_URL + img : img);
+
+                    // Ensure Main Image is first in array for logic consistency
+                    if (images.length === 0 && mainImg) images = [mainImg];
+                    else if (mainImg && !images.includes(mainImg)) images.unshift(mainImg);
+
+                    return {
+                        ...p,
+                        id: p.id,
+                        price: Number(p.price),
+                        image: mainImg,
+                        images: images
+                    };
+                });
+            } else {
+                console.warn('API error, falling back to static');
+                products = window.products || [];
+            }
+        } catch (err) {
+            console.warn('Fetch error, falling back to static', err);
+            products = window.products || [];
+        }
 
         productsGrid.innerHTML = '';
 
-        // Show first 4 products as featured
-        const featured = window.products.slice(0, 6);
+        // Show first 8 products (recent ones likely at end of DB, so maybe reverse?)
+        // Let's just take the last 8 to show "Newest" or just the first 8. 
+        // User asked "products added appear", so usually they appear at the end.
+        // Let's reverse to show newest first if they are ID sorted.
+        const featured = products.length > 0 ? products.slice(-8).reverse() : [];
 
         featured.forEach(product => {
             const card = document.createElement('div');
@@ -111,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Image Logic
             const hasMultipleImages = product.images && product.images.length > 1;
-            const displayImage = (product.images && product.images.length > 0) ? product.images[0] : product.image;
+            const displayImage = product.image || 'https://placehold.co/300x300?text=No+Image';
             const imgId = `prod-img-${product.id}`;
 
             card.innerHTML = `
@@ -122,9 +176,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="product-info">
                     <h3 class="product-title">${product.title}</h3>
                     <p class="product-category">${product.category}</p>
-                    <p class="product-price">$${product.price.toLocaleString()}</p>
+                    <p class="product-price">Gs. ${product.price.toLocaleString('es-PY')}</p>
                     <div class="product-actions">
-                        <button class="card-btn-add" data-id="${product.id}">Añadir al Carrito</button>
+                        ${isAdmin ? `
+                            <button class="card-btn-edit" onclick="event.stopPropagation(); openProductModal(${JSON.stringify(product).replace(/"/g, '&quot;')})">Editar</button>
+                            <button class="card-btn-delete" onclick="event.stopPropagation(); deleteProduct(${product.id})">Eliminar</button>
+                        ` : `
+                            <button class="card-btn-add" data-id="${product.id}">Añadir al Carrito</button>
+                        `}
                     </div>
                 </div>
             `;
@@ -175,6 +234,204 @@ document.addEventListener('DOMContentLoaded', function () {
                         imgEl.style.opacity = 1;
                     }, 200);
                 });
+            }
+        });
+    }
+
+    // Expose for HTML OnClick
+    window.toggleSubmenu = function (e, id) {
+        e.preventDefault();
+        const sub = document.getElementById('sub-' + id);
+        const parent = sub.parentElement;
+        if (sub) {
+            sub.classList.toggle('active');
+            parent.classList.toggle('open');
+        }
+    };
+
+    // --- Admin Logic ---
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = token && user.role === 'admin';
+
+    if (isAdmin) {
+        renderAdminSidebar();
+    }
+
+    function renderAdminSidebar() {
+        const sidebarMenu = document.querySelector('.sidebar-menu');
+        if (!sidebarMenu) return;
+
+        const adminSection = document.createElement('div');
+        adminSection.innerHTML = `
+            <h3>ADMINISTRACIÓN</h3>
+            <ul class="category-links">
+                <li><a href="products.html" class="active" style="background: var(--primary-red-dark); color: white; border-color: var(--primary-red);">Inventario</a></li>
+                <li><a href="#" onclick="openProductModal(null); return false;">+ Nuevo Producto</a></li>
+                <li><a href="#" onclick="logout(); return false;">Cerrar Sesión</a></li>
+            </ul>
+        `;
+        sidebarMenu.insertBefore(adminSection, sidebarMenu.firstChild);
+    }
+
+    window.logout = function () {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.reload();
+    };
+
+    // Global file tracking
+    let selectedFiles = [];
+
+    window.openProductModal = function (product) {
+        const modal = document.getElementById('productModal');
+        const title = document.getElementById('modalTitle');
+        const form = document.getElementById('productForm');
+
+        // Reset files
+        selectedFiles = [];
+        updateImagePreviews();
+
+        if (product) {
+            title.textContent = 'Editar Producto';
+            document.getElementById('productId').value = product.id;
+            document.getElementById('title').value = product.title;
+            document.getElementById('category').value = product.category;
+            document.getElementById('price').value = product.price;
+            document.getElementById('description').value = product.description || '';
+            document.getElementById('badge').value = product.badge || '';
+            if (document.getElementById('stock')) document.getElementById('stock').value = product.stock || 0;
+            if (document.getElementById('subcategory')) document.getElementById('subcategory').value = product.subcategory || '';
+
+            // Show existing images (read-only for now, or could implement delete for existing)
+            // For simplicity, we just show them. To delete existing, we'd need backend support to remove specific URLs.
+            // Let's focus on NEW files for now as requested "que se agregan".
+        } else {
+            title.textContent = 'Nuevo Producto';
+            form.reset();
+            document.getElementById('productId').value = '';
+        }
+
+        // Setup File Input Listener
+        const fileInput = form.querySelector('input[type="file"]');
+        // Remove old listener to avoid duplicates if any (cloning node is a trick, or just re-assign)
+        const newFileInput = fileInput.cloneNode(true);
+        fileInput.parentNode.replaceChild(newFileInput, fileInput);
+
+        newFileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            selectedFiles = [...selectedFiles, ...files];
+            updateImagePreviews();
+            // Clear input so same file can be selected again if needed (though we track in array)
+            newFileInput.value = '';
+        });
+
+        modal.style.display = 'flex';
+    };
+
+    function updateImagePreviews() {
+        const container = document.getElementById('imagePreviews');
+        if (!container) return; // Needs to be added to HTML
+
+        container.innerHTML = '';
+        selectedFiles.forEach((file, index) => {
+            const div = document.createElement('div');
+            div.className = 'preview-item';
+            div.style.cssText = 'position: relative; display: inline-block; margin: 5px;';
+
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #555;';
+
+            const btn = document.createElement('button');
+            btn.innerHTML = '×';
+            btn.style.cssText = 'position: absolute; top: -5px; right: -5px; background: red; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; line-height: 1;';
+            btn.onclick = (e) => {
+                e.preventDefault(); // Prevent form submit
+                selectedFiles.splice(index, 1);
+                updateImagePreviews();
+            };
+
+            div.appendChild(img);
+            div.appendChild(btn);
+            container.appendChild(div);
+        });
+    }
+
+    window.closeModal = function () {
+        document.getElementById('productModal').style.display = 'none';
+        selectedFiles = []; // Clear on close
+    };
+
+    window.handleFormSubmit = async function (e) {
+        e.preventDefault();
+        const id = document.getElementById('productId').value;
+        const formData = new FormData(e.target);
+        if (!id) formData.delete('id');
+
+        // Append tracked files
+        // First, remove any 'images' from the input (since we cleared it or it might have partials)
+        formData.delete('images');
+        selectedFiles.forEach(file => {
+            formData.append('images', file);
+        });
+
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `http://localhost:3000/api/products/${id}` : 'http://localhost:3000/api/products';
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            if (response.ok) {
+                closeModal();
+                window.location.reload();
+            } else {
+                alert('Error al guardar');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Error de conexión');
+        }
+    };
+
+    window.deleteProduct = async function (id) {
+        if (!confirm('¿Eliminar producto?')) return;
+        try {
+            const response = await fetch(`http://localhost:3000/api/products/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) window.location.reload();
+            else alert('Error al eliminar');
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    // --- End Admin Logic ---
+
+    // Sidebar Search Logic
+    const searchSubmit = document.querySelector('.search-submit');
+    const searchInput = document.querySelector('.search-input');
+
+    if (searchSubmit && searchInput) {
+        searchSubmit.addEventListener('click', () => {
+            const query = searchInput.value;
+            if (query) {
+                window.location.href = `products.html?search=${encodeURIComponent(query)}`;
+            }
+        });
+
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = searchInput.value;
+                if (query) {
+                    window.location.href = `products.html?search=${encodeURIComponent(query)}`;
+                }
             }
         });
     }
