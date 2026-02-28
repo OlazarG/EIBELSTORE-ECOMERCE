@@ -117,15 +117,15 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         items.forEach(product => {
             const card = document.createElement('div');
-            card.className = 'product-card';
+            card.className = 'group relative overflow-hidden rounded-lg border bg-background flex flex-col hover:shadow-lg transition-all cursor-pointer h-full';
 
             card.onclick = (e) => {
-                if (!e.target.closest('.card-btn-add')) {
+                if (!e.target.closest('.card-btn-add, .btn-outline, .btn-ghost')) {
                     window.location.href = `product-detail.html?id=${product.id}`;
                 }
             };
 
-            const badgeHtml = product.badge ? `<div class="product-badge">${product.badge}</div>` : '';
+            const badgeHtml = product.badge ? `<div class="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-sm z-10 shadow-sm">${product.badge}</div>` : '';
 
             // Image Logic
             const hasMultipleImages = product.images && product.images.length > 1;
@@ -133,20 +133,25 @@ document.addEventListener('DOMContentLoaded', async function () {
             const imgId = `prod-img-${product.id}`;
 
             card.innerHTML = `
-                <div class="product-image">
-                    <img id="${imgId}" src="${displayImage}" alt="${product.title || 'Producto'}" style="width: 100%; height: 100%; object-fit: contain; transition: opacity 0.5s ease;" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
+                <div class="relative w-full aspect-square bg-muted/30 overflow-hidden flex items-center justify-center">
+                    <img id="${imgId}" src="${displayImage}" alt="${product.title || 'Producto'}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-all duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
                     ${badgeHtml}
                 </div>
-                <div class="product-info">
-                    <h3 class="product-title">${product.title}</h3>
-                    <p class="product-category">${product.category}</p>
-                    <p class="product-price">Gs. ${product.price.toLocaleString('es-PY')}</p>
-                    <div class="product-actions">
+                <div class="p-4 flex flex-col flex-1">
+                    <p class="text-xs uppercase tracking-widest text-primary mb-1 font-semibold">${product.category}</p>
+                    <h3 class="text-lg font-bold tracking-tight mb-2 line-clamp-1">${product.title}</h3>
+                    <div class="mt-auto flex items-center justify-between pt-4 border-t">
+                        <p class="text-lg font-medium text-foreground">Gs. ${product.price.toLocaleString('es-PY')}</p>
                         ${isAdmin ? `
-                            <button class="card-btn-edit" onclick="event.stopPropagation(); openProductModal(${JSON.stringify(product).replace(/"/g, '&quot;')})">Editar</button>
-                            <button class="card-btn-delete" onclick="event.stopPropagation(); deleteProduct(${product.id})">Eliminar</button>
+                            <div class="flex gap-2">
+                                <button class="btn btn-outline btn-sm px-2 py-1 h-8 text-xs" onclick="event.stopPropagation(); openProductModal(${JSON.stringify(product).replace(/"/g, '&quot;')})">Editar</button>
+                                <button class="btn btn-ghost btn-sm px-2 py-1 h-8 text-xs text-destructive hover:bg-destructive/10" onclick="event.stopPropagation(); deleteProduct(${product.id})">Del</button>
+                            </div>
                         ` : `
-                            <button class="card-btn-add" data-id="${product.id}">Añadir al Carrito</button>
+                            <button class="btn btn-default btn-sm card-btn-add flex items-center shadow-sm hover:shadow-md transition-all" data-id="${product.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                                Añadir
+                            </button>
                         `}
                     </div>
                 </div>

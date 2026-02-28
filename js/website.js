@@ -152,16 +152,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         featured.forEach(product => {
             const card = document.createElement('div');
-            card.className = 'product-card';
+            card.className = 'group relative overflow-hidden rounded-lg border bg-background flex flex-col hover:shadow-lg transition-all cursor-pointer h-full';
 
-            // Navigate to detail on card click (except button)
             card.onclick = (e) => {
-                if (!e.target.closest('.card-btn-add')) {
+                if (!e.target.closest('.card-btn-add, .btn-outline, .btn-ghost')) {
                     window.location.href = `product-detail.html?id=${product.id}`;
                 }
             };
 
-            const badgeHtml = product.badge ? `<div class="product-badge">${product.badge}</div>` : '';
+            const badgeHtml = product.badge ? `<div class="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-sm z-10 shadow-sm">${product.badge}</div>` : '';
 
             // Image Logic
             const hasMultipleImages = product.images && product.images.length > 1;
@@ -169,20 +168,25 @@ document.addEventListener('DOMContentLoaded', function () {
             const imgId = `prod-img-${product.id}`;
 
             card.innerHTML = `
-                <div class="product-image">
-                    <img id="${imgId}" src="${displayImage}" alt="${product.title}" style="width: 100%; height: 100%; object-fit: contain; transition: opacity 0.5s ease;">
+                <div class="relative w-full aspect-square bg-muted/30 overflow-hidden flex items-center justify-center">
+                    <img id="${imgId}" src="${displayImage}" alt="${product.title}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-all duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
                     ${badgeHtml}
                 </div>
-                <div class="product-info">
-                    <h3 class="product-title">${product.title}</h3>
-                    <p class="product-category">${product.category}</p>
-                    <p class="product-price">Gs. ${product.price.toLocaleString('es-PY')}</p>
-                    <div class="product-actions">
+                <div class="p-4 flex flex-col flex-1">
+                    <p class="text-xs uppercase tracking-widest text-primary mb-1 font-semibold">${product.category}</p>
+                    <h3 class="text-lg font-bold tracking-tight mb-2 line-clamp-1">${product.title}</h3>
+                    <div class="mt-auto flex items-center justify-between pt-4 border-t">
+                        <p class="text-lg font-medium text-foreground">Gs. ${product.price.toLocaleString('es-PY')}</p>
                         ${isAdmin ? `
-                            <button class="card-btn-edit" onclick="event.stopPropagation(); openProductModal(${JSON.stringify(product).replace(/"/g, '&quot;')})">Editar</button>
-                            <button class="card-btn-delete" onclick="event.stopPropagation(); deleteProduct(${product.id})">Eliminar</button>
+                            <div class="flex gap-2">
+                                <button class="btn btn-outline btn-sm px-2 py-1 h-8 text-xs" onclick="event.stopPropagation(); openProductModal(${JSON.stringify(product).replace(/"/g, '&quot;')})">Editar</button>
+                                <button class="btn btn-ghost btn-sm px-2 py-1 h-8 text-xs text-destructive hover:bg-destructive/10" onclick="event.stopPropagation(); deleteProduct(${product.id})">Del</button>
+                            </div>
                         ` : `
-                            <button class="card-btn-add" data-id="${product.id}">Añadir al Carrito</button>
+                            <button class="btn btn-default btn-sm card-btn-add flex items-center shadow-sm hover:shadow-md transition-all bg-black text-white hover:bg-neutral-800" data-id="${product.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                                Añadir
+                            </button>
                         `}
                     </div>
                 </div>
@@ -259,19 +263,37 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderAdminSidebar() {
+        // 1. Update Sidebar
         const sidebarMenu = document.querySelector('.sidebar-menu');
-        if (!sidebarMenu) return;
+        if (sidebarMenu) {
+            const adminSection = document.createElement('div');
+            adminSection.className = "mb-6 pb-6 border-b border-border";
+            adminSection.innerHTML = `
+                <h3 class="text-sm font-bold tracking-tight uppercase text-primary mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    PANEL ADMIN
+                </h3>
+                <ul class="space-y-2">
+                    <li><a href="products.html" class="flex w-full items-center rounded-md px-3 py-2 text-sm font-semibold bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors">📦 Inventario Completo</a></li>
+                    <li><button onclick="openProductModal(null); return false;" class="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors text-left">➕ Nuevo Producto</button></li>
+                    <li><button onclick="logout(); return false;" class="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors text-left mt-2">🚪 Cerrar Sesión</button></li>
+                </ul>
+            `;
+            sidebarMenu.insertBefore(adminSection, sidebarMenu.firstChild);
+        }
 
-        const adminSection = document.createElement('div');
-        adminSection.innerHTML = `
-            <h3>ADMINISTRACIÓN</h3>
-            <ul class="category-links">
-                <li><a href="products.html" class="active" style="background: var(--primary-red-dark); color: white; border-color: var(--primary-red);">Inventario</a></li>
-                <li><a href="#" onclick="openProductModal(null); return false;">+ Nuevo Producto</a></li>
-                <li><a href="#" onclick="logout(); return false;">Cerrar Sesión</a></li>
-            </ul>
-        `;
-        sidebarMenu.insertBefore(adminSection, sidebarMenu.firstChild);
+        // 2. Update Header Login Icon to show Admin state
+        const loginBtn = document.querySelector('a[href*="login.html"]');
+        if (loginBtn) {
+            loginBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span class="hidden sm:inline-block font-bold">Admin</span>
+            `;
+            // Change style to highlight it
+            loginBtn.className = "btn btn-outline btn-sm gap-2 border-primary text-primary hover:bg-primary/10 ml-2";
+            loginBtn.href = "products.html"; // Make it go to the inventory
+            loginBtn.title = "Panel de Control";
+        }
     }
 
     window.logout = function () {
@@ -365,19 +387,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.handleFormSubmit = async function (e) {
         e.preventDefault();
-        const id = document.getElementById('productId').value;
-        const formData = new FormData(e.target);
-        if (!id) formData.delete('id');
 
-        // Append tracked files
-        // First, remove any 'images' from the input (since we cleared it or it might have partials)
+        // Ensure we get the ID correctly from the hidden input field
+        const idInput = document.getElementById('productId');
+        const id = idInput ? idInput.value : '';
+
+        const formData = new FormData(e.target);
+        if (!id) formData.delete('id'); // Remove empty ID field if creating
+
+        // Process tracked images
         formData.delete('images');
         selectedFiles.forEach(file => {
             formData.append('images', file);
         });
 
+        // Determine method and URL based on presence of a valid ID
         const method = id ? 'PUT' : 'POST';
         const url = id ? `http://localhost:3000/api/products/${id}` : 'http://localhost:3000/api/products';
+
+        console.log(`Submitting form to ${url} via ${method} with ID: ${id || 'NEW'}`);
 
         try {
             const response = await fetch(url, {

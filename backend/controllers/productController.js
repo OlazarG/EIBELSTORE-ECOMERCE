@@ -9,8 +9,8 @@ exports.getAllProducts = async (req, res) => {
         }));
         res.json(products);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error fetching products' });
+        console.error("ERROR FETCHING PRODUCTS:", err);
+        res.status(500).json({ message: 'Error fetching products', error: err.message });
     }
 };
 

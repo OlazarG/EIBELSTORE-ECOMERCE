@@ -190,11 +190,15 @@ const Cart = {
         const overlay = document.querySelector('.cart-overlay');
         if (drawer && overlay) {
             if (this.isOpen) {
-                drawer.classList.add('active');
-                overlay.classList.add('active');
+                overlay.classList.remove('opacity-0', 'pointer-events-none');
+                overlay.classList.add('opacity-100', 'pointer-events-auto');
+                drawer.classList.remove('translate-x-full');
+                drawer.classList.add('translate-x-0');
             } else {
-                drawer.classList.remove('active');
-                overlay.classList.remove('active');
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+                overlay.classList.remove('opacity-100', 'pointer-events-auto');
+                drawer.classList.add('translate-x-full');
+                drawer.classList.remove('translate-x-0');
             }
         }
     },
@@ -216,21 +220,21 @@ const Cart = {
         let total = 0;
 
         if (this.items.length === 0) {
-            container.innerHTML = '<div class="cart-empty">Tu carrito está vacío</div>';
+            container.innerHTML = '<div class="text-center text-muted-foreground p-4">Tu carrito está vacío</div>';
         } else {
             this.items.forEach(item => {
                 total += item.price * item.quantity;
                 const itemEl = document.createElement('div');
-                itemEl.className = 'cart-item';
+                itemEl.className = 'cart-item flex items-center gap-4 p-3 border rounded-md relative bg-card';
                 itemEl.innerHTML = `
-                    <div class="cart-item-img">
-                        <img src="${item.image}" alt="${item.title}">
+                    <div class="w-16 h-16 bg-muted/50 rounded flex-shrink-0 p-1">
+                        <img src="${item.image}" alt="${item.title}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal" onerror="this.src='https://placehold.co/100x100?text=No+Image'">
                     </div>
-                    <div class="cart-item-info">
-                        <h4>${item.title}</h4>
-                        <p>${item.quantity} x Gs. ${item.price.toLocaleString('es-PY')}</p>
+                    <div class="flex-1 min-w-0 pr-6">
+                        <h4 class="font-medium text-sm line-clamp-2 leading-tight">${item.title}</h4>
+                        <p class="text-xs text-muted-foreground mt-1">${item.quantity} x Gs. ${item.price.toLocaleString('es-PY')}</p>
                     </div>
-                    <button class="remove-item" data-id="${item.id}">×</button>
+                    <button class="remove-item absolute right-2 top-2 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs hover:bg-destructive hover:text-destructive-foreground transition-colors" data-id="${item.id}">&times;</button>
                 `;
                 container.appendChild(itemEl);
             });
@@ -247,21 +251,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inject Cart HTML if not present
     if (!document.querySelector('.cart-drawer')) {
         const cartHTML = `
-            <div class="cart-overlay"></div>
-            <div class="cart-drawer">
-                <div class="cart-header">
-                    <h3>Tu Carrito</h3>
-                    <button class="cart-close">×</button>
+            <div class="cart-overlay fixed inset-0 bg-black/80 z-50 opacity-0 pointer-events-none transition-opacity duration-300 backdrop-blur-sm"></div>
+            <div class="cart-drawer fixed inset-y-0 right-0 z-50 w-full max-w-sm border-l bg-background shadow-lg transition-transform duration-300 translate-x-full flex flex-col">
+                <div class="flex items-center justify-between p-4 border-b">
+                    <h3 class="font-semibold text-lg tracking-tight">Tu Carrito</h3>
+                    <button class="cart-close btn btn-ghost btn-icon w-8 h-8 rounded-full">&times;</button>
                 </div>
-                <div class="cart-items">
+                <div class="cart-items flex-1 overflow-y-auto p-4 flex flex-col gap-3">
                     <!-- Items injected here -->
                 </div>
-                <div class="cart-footer">
-                    <div class="cart-total">
+                <div class="border-t p-4 space-y-4 bg-muted/30">
+                    <div class="flex justify-between font-bold text-lg">
                         <span>Total:</span>
-                        <span class="cart-total-price">Gs. 0</span>
+                        <span class="cart-total-price text-primary">Gs. 0</span>
                     </div>
-                    <button class="btn checkout-btn">Finalizar Compra</button>
+                    <button class="btn btn-default w-full checkout-btn bg-black text-white hover:bg-neutral-800 text-lg py-6 font-bold uppercase tracking-wider shadow-lg transition-all border-none">Finalizar Compra</button>
                 </div>
             </div>
         `;
@@ -271,32 +275,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inject Checkout Modal if not present (Fix for product-detail)
     if (!document.getElementById('checkout-modal')) {
         const checkoutHTML = `
-             <div id="checkout-overlay" class="checkout-overlay"></div>
-            <div id="checkout-modal" class="checkout-modal">
-                <div class="checkout-header">
-                    <h2>Finalizar Pedido</h2>
-                    <button id="close-checkout" class="close-checkout">×</button>
+            <div id="checkout-overlay" class="checkout-overlay fixed inset-0 bg-black/80 z-50 opacity-0 pointer-events-none transition-opacity duration-200 backdrop-blur-sm"></div>
+            <div id="checkout-modal" class="checkout-modal fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-xl sm:rounded-xl opacity-0 pointer-events-none scale-95 transition-all duration-200">
+                <div class="flex items-center justify-between border-b pb-4">
+                    <h2 class="text-xl font-bold tracking-tight">Finalizar Pedido</h2>
+                    <button id="close-checkout" class="close-checkout btn btn-ghost btn-icon w-8 h-8 rounded-full">&times;</button>
                 </div>
-                <div class="checkout-body">
-                    <form id="checkout-form">
-                        <div class="form-group">
-                            <label for="customer-name">Nombre Completo *</label>
-                            <input type="text" id="customer-name" required placeholder="Ej: Juan Pérez">
+                <div class="pt-2">
+                    <form id="checkout-form" class="space-y-5">
+                        <div class="space-y-2">
+                            <label for="customer-name" class="text-sm font-medium leading-none">Nombre Completo *</label>
+                            <input type="text" id="customer-name" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="Ej: Juan Pérez">
                         </div>
-                        <div class="form-group">
-                            <label for="customer-address">Dirección de Entrega *</label>
-                            <input type="text" id="customer-address" required placeholder="Ej: Av. España 123">
+                        <div class="space-y-2">
+                            <label for="customer-address" class="text-sm font-medium leading-none">Dirección de Entrega *</label>
+                            <input type="text" id="customer-address" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="Ej: Av. España 123">
                         </div>
-                        <div class="form-group">
-                            <label for="payment-method">Método de Pago *</label>
-                            <select id="payment-method" required>
+                        <div class="space-y-2">
+                            <label for="payment-method" class="text-sm font-medium leading-none">Método de Pago *</label>
+                            <select id="payment-method" required class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
                                 <option value="Efectivo">Efectivo</option>
                                 <option value="Transferencia">Transferencia Bancaria</option>
                                 <option value="QR">Pago QR</option>
                             </select>
                         </div>
-                        <div class="checkout-actions">
-                            <button type="submit" class="btn-whatsapp">
+                        <div class="pt-4">
+                            <button type="submit" class="w-full bg-[#25D366] text-white hover:bg-[#128C7E] inline-flex items-center justify-center rounded-md font-bold text-base shadow-lg ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-12 px-8 py-2">
                                 Enviar Pedido a WhatsApp 📱
                             </button>
                         </div>
