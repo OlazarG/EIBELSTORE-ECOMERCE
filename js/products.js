@@ -49,6 +49,12 @@ document.addEventListener('DOMContentLoaded', async function () {
                     images: images
                 };
             });
+
+            // Filter for Clients: only show active products
+            if (!isAdmin) {
+                window.products = window.products.filter(p => p.is_active !== false);
+            }
+
             if (window.products.length === 0) {
                 console.warn('API returned empty, using static backup for demo/testing if initialized');
                 if (typeof products !== 'undefined' && products.length > 0) window.products = products;
@@ -126,6 +132,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             };
 
             const badgeHtml = product.badge ? `<div class="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-sm z-10 shadow-sm">${product.badge}</div>` : '';
+            const statusBadgeHtml = isAdmin ? `
+                <div class="absolute top-0 left-0 flex items-center gap-1.5 px-2 py-1 rounded-br-lg z-10 bg-black/80 backdrop-blur-md border-r border-b border-white/10 text-[10px] font-bold text-white tracking-tight">
+                    <span class="w-2 h-2 rounded-full shadow-[0_0_8px]" style="background-color: ${product.is_active !== false ? '#22c55e' : '#ef4444'}; box-shadow: 0 0 8px ${product.is_active !== false ? '#22c55e' : '#ef4444'};"></span>
+                    ${product.is_active !== false ? 'ACTIVO' : 'INACTIVO'}
+                </div>
+            ` : '';
 
             // Image Logic
             const hasMultipleImages = product.images && product.images.length > 1;
@@ -136,6 +148,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 <div class="relative w-full aspect-square bg-muted/30 overflow-hidden flex items-center justify-center">
                     <img id="${imgId}" src="${displayImage}" alt="${product.title || 'Producto'}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-all duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
                     ${badgeHtml}
+                    ${statusBadgeHtml}
                 </div>
                 <div class="p-4 flex flex-col flex-1">
                     <p class="text-xs uppercase tracking-widest text-primary mb-1 font-semibold">${product.category}</p>

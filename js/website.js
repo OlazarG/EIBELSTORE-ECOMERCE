@@ -133,6 +133,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         images: images
                     };
                 });
+
+                // Filter for Clients: only show active products
+                if (!isAdmin) {
+                    products = products.filter(p => p.is_active !== false);
+                }
             } else {
                 console.warn('API error, falling back to static');
                 products = window.products || [];
@@ -161,6 +166,12 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             const badgeHtml = product.badge ? `<div class="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-sm z-10 shadow-sm">${product.badge}</div>` : '';
+            const statusBadgeHtml = isAdmin ? `
+                <div class="absolute top-0 left-0 flex items-center gap-1.5 px-2 py-1 rounded-br-lg z-10 bg-black/80 backdrop-blur-md border-r border-b border-white/10 text-[10px] font-bold text-white tracking-tight">
+                    <span class="w-2 h-2 rounded-full shadow-[0_0_8px]" style="background-color: ${product.is_active !== false ? '#22c55e' : '#ef4444'}; box-shadow: 0 0 8px ${product.is_active !== false ? '#22c55e' : '#ef4444'};"></span>
+                    ${product.is_active !== false ? 'ACTIVO' : 'INACTIVO'}
+                </div>
+            ` : '';
 
             // Image Logic
             const hasMultipleImages = product.images && product.images.length > 1;
@@ -171,6 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="relative w-full aspect-square bg-muted/30 overflow-hidden flex items-center justify-center">
                     <img id="${imgId}" src="${displayImage}" alt="${product.title}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-all duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
                     ${badgeHtml}
+                    ${statusBadgeHtml}
                 </div>
                 <div class="p-4 flex flex-col flex-1">
                     <p class="text-xs uppercase tracking-widest text-primary mb-1 font-semibold">${product.category}</p>
@@ -195,16 +207,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Add to Cart Logic
             const btn = card.querySelector('.card-btn-add');
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                Cart.addItem(product);
-                btn.textContent = "¡Añadido!";
-                btn.classList.add('added');
-                setTimeout(() => {
-                    btn.textContent = "Añadir al Carrito";
-                    btn.classList.remove('added');
-                }, 2000);
-            };
+            if (btn) {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    Cart.addItem(product);
+                    btn.textContent = "¡Añadido!";
+                    btn.classList.add('added');
+                    setTimeout(() => {
+                        btn.textContent = "Añadir al Carrito";
+                        btn.classList.remove('added');
+                    }, 2000);
+                };
+            }
 
             // Hover Rotate Images
             if (hasMultipleImages) {
@@ -324,6 +338,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('badge').value = product.badge || '';
             if (document.getElementById('stock')) document.getElementById('stock').value = product.stock || 0;
             if (document.getElementById('subcategory')) document.getElementById('subcategory').value = product.subcategory || '';
+            if (document.getElementById('is_active')) document.getElementById('is_active').checked = product.is_active !== false;
 
             // Show existing images (read-only for now, or could implement delete for existing)
             // For simplicity, we just show them. To delete existing, we'd need backend support to remove specific URLs.
@@ -332,6 +347,7 @@ document.addEventListener('DOMContentLoaded', function () {
             title.textContent = 'Nuevo Producto';
             form.reset();
             document.getElementById('productId').value = '';
+            if (document.getElementById('is_active')) document.getElementById('is_active').checked = true;
         }
 
         // Setup File Input Listener
@@ -400,6 +416,12 @@ document.addEventListener('DOMContentLoaded', function () {
         selectedFiles.forEach(file => {
             formData.append('images', file);
         });
+
+        // Ensure is_active is sent
+        const activeCheck = document.getElementById('is_active');
+        if (activeCheck) {
+            formData.set('is_active', activeCheck.checked);
+        }
 
         // Determine method and URL based on presence of a valid ID
         const method = id ? 'PUT' : 'POST';

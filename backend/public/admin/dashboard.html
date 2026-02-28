@@ -498,7 +498,16 @@
                 </div>
 
                 <!-- Row 3 -->
-                <div class="form-group" style="grid-column: span 5;">
+                <div class="form-group" style="grid-column: span 1;">
+                    <label>Estado</label>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                        <input type="checkbox" id="is_active" name="is_active" checked
+                            style="width: 20px; height: 20px;">
+                        <span style="color: white; font-size: 0.9rem;">Activo</span>
+                    </div>
+                </div>
+
+                <div class="form-group" style="grid-column: span 4;">
                     <label>Imágenes</label>
                     <input type="file" id="images" name="images" multiple accept="image/*">
                     <div id="imagePreviews" style="margin-top: 10px; display: flex; flex-wrap: wrap;"></div>
@@ -661,10 +670,12 @@
                 document.getElementById('stock').value = product.stock || 0;
                 document.getElementById('badge').value = product.badge || '';
                 document.getElementById('description').value = product.description || '';
+                document.getElementById('is_active').checked = product.is_active !== false;
             } else {
                 document.getElementById('modalTitle').textContent = 'Nuevo Producto';
                 form.reset();
                 document.getElementById('productId').value = '';
+                document.getElementById('is_active').checked = true;
             }
             modal.style.display = 'flex';
         }
@@ -716,6 +727,9 @@
 
             formData.delete('images');
             selectedFiles.forEach(file => formData.append('images', file));
+
+            // Fix for checkbox state
+            formData.set('is_active', document.getElementById('is_active').checked);
 
             const method = id ? 'PUT' : 'POST';
             const url = id ? `http://localhost:3000/api/products/${id}` : 'http://localhost:3000/api/products';
