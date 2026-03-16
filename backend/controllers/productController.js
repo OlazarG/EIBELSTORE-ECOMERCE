@@ -30,13 +30,13 @@ exports.getProductById = async (req, res) => {
 };
 
 exports.createProduct = async (req, res) => {
-    const { title, category, subcategory, price, stock, description, badge, is_active } = req.body;
+    const { title, category, subcategory, price, stock, description, badge, is_active, discount_percentage } = req.body;
     const image = req.files && req.files.length > 0 ? `/uploads/${req.files[0].filename}` : '';
     const gallery_urls = req.files ? req.files.map(f => `/uploads/${f.filename}`) : [];
 
     try {
         const result = await pool.query(
-            'INSERT INTO products (title, category, subcategory, price, stock, description, badge, image, gallery_urls, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10) RETURNING *',
+            'INSERT INTO products (title, category, subcategory, price, stock, description, badge, image, gallery_urls, is_active, discount_percentage) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11) RETURNING *',
             [
                 title,
                 category,
@@ -47,7 +47,8 @@ exports.createProduct = async (req, res) => {
                 badge,
                 image,
                 JSON.stringify(gallery_urls),
-                is_active === 'true' || is_active === true || is_active === undefined
+                is_active === 'true' || is_active === true || is_active === undefined,
+                parseInt(discount_percentage) || 0
             ]
         );
         res.status(201).json(result.rows[0]);
@@ -59,7 +60,7 @@ exports.createProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
     const { id } = req.params;
-    const { title, category, subcategory, price, stock, description, badge, is_active } = req.body;
+    const { title, category, subcategory, price, stock, description, badge, is_active, discount_percentage } = req.body;
 
     try {
         const productId = parseInt(id);
@@ -76,20 +77,22 @@ exports.updateProduct = async (req, res) => {
         }
 
         const activeStatus = is_active !== undefined ? (is_active === 'true' || is_active === true || is_active === '1') : oldProduct.is_active;
+        const discountStatus = discount_percentage !== undefined ? parseInt(discount_percentage) : (oldProduct.discount_percentage || 0);
 
         const result = await pool.query(
-            'UPDATE products SET title=$1, category=$2, subcategory=$3, price=$4, stock=$5, description=$6, badge=$7, image=$8, gallery_urls=$9::jsonb, is_active=$10 WHERE id=$11 RETURNING *',
+            'UPDATE products SET title=$1, category=$2, subcategory=$3, price=$4, stock=$5, description=$6, badge=$7, image=$8, gallery_urls=$9::jsonb, is_active=$10, discount_percentage=$11 WHERE id=$12 RETURNING *',
             [
-                title,
-                category,
-                subcategory,
-                parseFloat(price) || 0,
-                parseInt(stock) || 0,
-                description,
-                badge,
+                title !== undefined ? title : oldProduct.title,
+                category !== undefined ? category : oldProduct.category,
+                subcategory !== undefined ? subcategory : oldProduct.subcategory,
+                price !== undefined ? parseFloat(price) : oldProduct.price,
+                stock !== undefined ? parseInt(stock) : oldProduct.stock,
+                description !== undefined ? description : oldProduct.description,
+                badge !== undefined ? badge : oldProduct.badge,
                 image,
                 JSON.stringify(gallery_urls),
                 activeStatus,
+                discountStatus,
                 productId
             ]
         );

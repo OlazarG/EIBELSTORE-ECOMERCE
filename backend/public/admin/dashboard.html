@@ -492,7 +492,12 @@
                     <input type="text" id="badge" name="badge" placeholder="Ej: NUEVO">
                 </div>
 
-                <div class="form-group" style="grid-column: span 4;">
+                <div class="form-group">
+                    <label>Descuento (%)</label>
+                    <input type="number" id="discount_percentage" name="discount_percentage" value="0" min="0" max="100">
+                </div>
+
+                <div class="form-group" style="grid-column: span 3;">
                     <label>Descripción</label>
                     <textarea id="description" name="description" rows="1" style="height: 42px;"></textarea>
                 </div>
@@ -547,7 +552,9 @@
                     grid.innerHTML = products.map(p => {
                         const img = p.image_url || p.image || 'https://placehold.co/300x200';
                         const displayImg = img.startsWith('/uploads') ? `http://localhost:3000${img}` : img;
-                        const isActive = p.is_active !== false; // Default true
+                        const discount = parseInt(p.discount_percentage) || 0;
+                        const originalPrice = Number(p.price);
+                        const discountedPrice = discount > 0 ? originalPrice * (1 - discount / 100) : originalPrice;
 
                         return `
                         <div class="product-card">
@@ -555,6 +562,7 @@
                                 <span class="status-badge ${isActive ? 'status-active' : 'status-inactive'}">
                                     ${isActive ? 'Active' : 'Inactive'}
                                 </span>
+                                ${discount > 0 ? `<span class="status-badge status-inactive" style="top: 40px; background: #ff4757;">-${discount}%</span>` : ''}
                                 <img src="${displayImg}" alt="${p.title}">
                             </div>
                             <div class="card-body">
@@ -563,7 +571,10 @@
                                 
                                 <div class="card-row">
                                     <span class="category-badge">${p.category || 'GENERAL'}</span>
-                                    <div class="card-price">$${Number(p.price).toLocaleString('es-PY')}</div>
+                                    <div class="price-container">
+                                        ${discount > 0 ? `<div style="text-decoration: line-through; color: #a4b0be; font-size: 0.8rem;">Gs. ${originalPrice.toLocaleString('es-PY')}</div>` : ''}
+                                        <div class="card-price">Gs. ${discountedPrice.toLocaleString('es-PY')}</div>
+                                    </div>
                                 </div>
 
                                 <div class="card-row">
@@ -633,6 +644,7 @@
                 data.append('description', product.description || '');
                 data.append('badge', product.badge || '');
                 data.append('is_active', !currentStatus);
+                data.append('discount_percentage', product.discount_percentage || 0);
 
                 const updateRes = await fetch(`http://localhost:3000/api/products/${id}`, {
                     method: 'PUT',
@@ -669,6 +681,7 @@
                 document.getElementById('price').value = product.price;
                 document.getElementById('stock').value = product.stock || 0;
                 document.getElementById('badge').value = product.badge || '';
+                document.getElementById('discount_percentage').value = product.discount_percentage || 0;
                 document.getElementById('description').value = product.description || '';
                 document.getElementById('is_active').checked = product.is_active !== false;
             } else {

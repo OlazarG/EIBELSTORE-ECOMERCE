@@ -62,6 +62,9 @@ function openModal(product = null) {
         document.getElementById('price').value = product.price;
         document.getElementById('description').value = product.description || '';
         document.getElementById('badge').value = product.badge || '';
+        if (document.getElementById('discount_percentage')) {
+            document.getElementById('discount_percentage').value = product.discount_percentage || 0;
+        }
     } else {
         title.textContent = 'Nuevo Producto';
         form.reset();

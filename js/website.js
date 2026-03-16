@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', function () {
     initEvents();
     loadFeaturedProducts();
     initHeroCarousel();
+    initRevealOnScroll();
+    applyReveal(document.querySelectorAll('.reveal'));
 
     // Auto-rotate Hero
     setInterval(() => changeHeroImage(1), 5000);
@@ -87,6 +89,31 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Scroll Reveal Logic
+    function initRevealOnScroll() {
+        const observerOptions = {
+            threshold: 0.01,
+            rootMargin: '0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                } else {
+                    entry.target.classList.remove('active');
+                }
+            });
+        }, observerOptions);
+
+        window.revealObserver = observer;
+    }
+
+    function applyReveal(elements) {
+        if (!window.revealObserver) return;
+        elements.forEach(el => window.revealObserver.observe(el));
+    }
+
     async function loadFeaturedProducts() {
         const productsGrid = document.querySelector('.products-grid');
         if (!productsGrid) return;
@@ -129,6 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         ...p,
                         id: p.id,
                         price: Number(p.price),
+                        discount_percentage: parseInt(p.discount_percentage) || 0,
                         image: mainImg,
                         images: images
                     };
@@ -155,9 +183,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // Let's reverse to show newest first if they are ID sorted.
         const featured = products.length > 0 ? products.slice(-8).reverse() : [];
 
-        featured.forEach(product => {
+        featured.forEach((product, index) => {
             const card = document.createElement('div');
-            card.className = 'group relative overflow-hidden rounded-lg border bg-background flex flex-col hover:shadow-lg transition-all cursor-pointer h-full';
+            card.className = `group relative overflow-hidden rounded-lg border bg-background flex flex-col hover:shadow-lg transition-all cursor-pointer h-full reveal`;
+            card.style.transitionDelay = `${index * 80}ms`;
 
             card.onclick = (e) => {
                 if (!e.target.closest('.card-btn-add, .btn-outline, .btn-ghost')) {
@@ -167,8 +196,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const badgeHtml = product.badge ? `<div class="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-sm z-10 shadow-sm">${product.badge}</div>` : '';
             const statusBadgeHtml = isAdmin ? `
-                <div class="absolute top-0 left-0 flex items-center gap-1.5 px-2 py-1 rounded-br-lg z-10 bg-black/80 backdrop-blur-md border-r border-b border-white/10 text-[10px] font-bold text-white tracking-tight">
-                    <span class="w-2 h-2 rounded-full shadow-[0_0_8px]" style="background-color: ${product.is_active !== false ? '#22c55e' : '#ef4444'}; box-shadow: 0 0 8px ${product.is_active !== false ? '#22c55e' : '#ef4444'};"></span>
+                <div class="absolute z-20 px-2 py-1 rounded-br-lg shadow-sm text-[10px] font-bold text-white tracking-tight" 
+                     style="top: 0; left: 0; background-color: ${product.is_active !== false ? '#22c55e' : '#ef4444'};">
                     ${product.is_active !== false ? 'ACTIVO' : 'INACTIVO'}
                 </div>
             ` : '';
@@ -182,13 +211,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="relative w-full aspect-square bg-muted/30 overflow-hidden flex items-center justify-center">
                     <img id="${imgId}" src="${displayImage}" alt="${product.title}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-all duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
                     ${badgeHtml}
+                    ${product.discount_percentage > 0 ? `<div class="absolute top-10 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-sm z-10 shadow-sm">-${product.discount_percentage}%</div>` : ''}
                     ${statusBadgeHtml}
                 </div>
                 <div class="p-4 flex flex-col flex-1">
                     <p class="text-xs uppercase tracking-widest text-primary mb-1 font-semibold">${product.category}</p>
                     <h3 class="text-lg font-bold tracking-tight mb-2 line-clamp-1">${product.title}</h3>
                     <div class="mt-auto flex items-center justify-between pt-4 border-t">
-                        <p class="text-lg font-medium text-foreground">Gs. ${product.price.toLocaleString('es-PY')}</p>
+                        <div class="flex flex-col">
+                            ${product.discount_percentage > 0 ? `
+                                <span style="text-decoration: line-through; color: #9ca3af; font-size: 0.85rem;">Gs. ${product.price.toLocaleString('es-PY')}</span>
+                                <p class="text-lg font-bold text-primary">Gs. ${(product.price * (1 - product.discount_percentage / 100)).toLocaleString('es-PY')}</p>
+                            ` : `
+                                <p class="text-lg font-medium text-foreground">Gs. ${product.price.toLocaleString('es-PY')}</p>
+                            `}
+                        </div>
                         ${isAdmin ? `
                             <div class="flex gap-2">
                                 <button class="btn btn-outline btn-sm px-2 py-1 h-8 text-xs" onclick="event.stopPropagation(); openProductModal(${JSON.stringify(product).replace(/"/g, '&quot;')})">Editar</button>
@@ -227,8 +264,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const imgEl = document.getElementById(imgId);
 
                 card.addEventListener('mouseenter', () => {
-                    if (intervalId) return; // Prevent multiple intervals
-
+                    if (intervalId) return;
                     intervalId = setInterval(() => {
                         imgEl.style.opacity = 0;
                         setTimeout(() => {
@@ -244,7 +280,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         clearInterval(intervalId);
                         intervalId = null;
                     }
-                    // Reset to main image
                     imgEl.style.opacity = 0;
                     setTimeout(() => {
                         imgIdx = 0;
@@ -254,6 +289,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
         });
+
+        // Initialize reveal for new cards
+        applyReveal(productsGrid.querySelectorAll('.reveal'));
     }
 
     // Expose for HTML OnClick
@@ -336,6 +374,9 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('price').value = product.price;
             document.getElementById('description').value = product.description || '';
             document.getElementById('badge').value = product.badge || '';
+            if (document.getElementById('discount_percentage')) {
+                document.getElementById('discount_percentage').value = product.discount_percentage || 0;
+            }
             if (document.getElementById('stock')) document.getElementById('stock').value = product.stock || 0;
             if (document.getElementById('subcategory')) document.getElementById('subcategory').value = product.subcategory || '';
             if (document.getElementById('is_active')) document.getElementById('is_active').checked = product.is_active !== false;

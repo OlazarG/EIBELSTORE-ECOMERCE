@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 return {
                     ...p,
                     price: Number(p.price), // Ensure number
+                    discount_percentage: parseInt(p.discount_percentage) || 0,
                     image: img,
                     images: images
                 };
@@ -69,44 +70,29 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     // Initial Load
-    renderProducts(window.products || []);
+    // We don't call renderProducts directly here, applyFilters will be called at the end
 
-    // Filter Logic
-    window.applyFilters = function () {
-        let filtered = window.products || [];
-
-        // Category
-        const cat = categoryFilter.value;
-        if (cat) {
-            filtered = filtered.filter(p => p.category && p.category.toLowerCase() === cat.toLowerCase());
-        }
-
-        // Search
-        const query = searchInput.value.toLowerCase();
-        if (query) {
-            filtered = filtered.filter(p =>
-                (p.title && p.title.toLowerCase().includes(query)) ||
-                (p.description && p.description.toLowerCase().includes(query))
-            );
-        }
-
-        renderProducts(filtered);
-    };
 
     window.clearFilters = function () {
-        categoryFilter.value = "";
-        searchInput.value = "";
-        currentSubcategory = "";
-        document.getElementById('subcatFilterDiv').style.display = 'none';
+        // Fade out existing cards
+        const cards = productsGrid.querySelectorAll('.reveal');
+        cards.forEach(card => card.classList.add('fade-out'));
 
-        // Clean URL
-        const url = new URL(window.location);
-        url.searchParams.delete('category');
-        url.searchParams.delete('subcategory');
-        url.searchParams.delete('search');
-        window.history.pushState({}, '', url);
+        setTimeout(() => {
+            categoryFilter.value = "";
+            searchInput.value = "";
+            currentSubcategory = "";
+            document.getElementById('subcatFilterDiv').style.display = 'none';
 
-        renderProducts(window.products || []);
+            // Clean URL
+            const url = new URL(window.location);
+            url.searchParams.delete('category');
+            url.searchParams.delete('subcategory');
+            url.searchParams.delete('search');
+            window.history.pushState({}, '', url);
+
+            renderProducts(window.products || []);
+        }, 300);
     };
 
     function renderProducts(items) {
@@ -121,9 +107,10 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         if (productsCount) productsCount.textContent = `Mostrando ${items.length} productos`;
 
-        items.forEach(product => {
+        items.forEach((product, index) => {
             const card = document.createElement('div');
-            card.className = 'group relative overflow-hidden rounded-lg border bg-background flex flex-col hover:shadow-lg transition-all cursor-pointer h-full';
+            card.className = `group relative overflow-hidden rounded-lg border bg-background flex flex-col hover:shadow-lg transition-all cursor-pointer h-full reveal`;
+            card.style.transitionDelay = `${(index % 12) * 50}ms`; // Staggered entrance
 
             card.onclick = (e) => {
                 if (!e.target.closest('.card-btn-add, .btn-outline, .btn-ghost')) {
@@ -133,8 +120,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             const badgeHtml = product.badge ? `<div class="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-sm z-10 shadow-sm">${product.badge}</div>` : '';
             const statusBadgeHtml = isAdmin ? `
-                <div class="absolute top-0 left-0 flex items-center gap-1.5 px-2 py-1 rounded-br-lg z-10 bg-black/80 backdrop-blur-md border-r border-b border-white/10 text-[10px] font-bold text-white tracking-tight">
-                    <span class="w-2 h-2 rounded-full shadow-[0_0_8px]" style="background-color: ${product.is_active !== false ? '#22c55e' : '#ef4444'}; box-shadow: 0 0 8px ${product.is_active !== false ? '#22c55e' : '#ef4444'};"></span>
+                <div class="absolute z-20 px-2 py-1 rounded-br-lg shadow-sm text-[10px] font-bold text-white tracking-tight" 
+                     style="top: 0; left: 0; background-color: ${product.is_active !== false ? '#22c55e' : '#ef4444'};">
                     ${product.is_active !== false ? 'ACTIVO' : 'INACTIVO'}
                 </div>
             ` : '';
@@ -148,13 +135,21 @@ document.addEventListener('DOMContentLoaded', async function () {
                 <div class="relative w-full aspect-square bg-muted/30 overflow-hidden flex items-center justify-center">
                     <img id="${imgId}" src="${displayImage}" alt="${product.title || 'Producto'}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-all duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
                     ${badgeHtml}
+                    ${product.discount_percentage > 0 ? `<div class="absolute top-10 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-sm z-10 shadow-sm">-${product.discount_percentage}%</div>` : ''}
                     ${statusBadgeHtml}
                 </div>
                 <div class="p-4 flex flex-col flex-1">
                     <p class="text-xs uppercase tracking-widest text-primary mb-1 font-semibold">${product.category}</p>
                     <h3 class="text-lg font-bold tracking-tight mb-2 line-clamp-1">${product.title}</h3>
                     <div class="mt-auto flex items-center justify-between pt-4 border-t">
-                        <p class="text-lg font-medium text-foreground">Gs. ${product.price.toLocaleString('es-PY')}</p>
+                        <div class="flex flex-col">
+                            ${product.discount_percentage > 0 ? `
+                                <span style="text-decoration: line-through; color: #9ca3af; font-size: 0.85rem;">Gs. ${product.price.toLocaleString('es-PY')}</span>
+                                <p class="text-lg font-bold text-primary">Gs. ${(product.price * (1 - product.discount_percentage / 100)).toLocaleString('es-PY')}</p>
+                            ` : `
+                                <p class="text-lg font-medium text-foreground">Gs. ${product.price.toLocaleString('es-PY')}</p>
+                            `}
+                        </div>
                         ${isAdmin ? `
                             <div class="flex gap-2">
                                 <button class="btn btn-outline btn-sm px-2 py-1 h-8 text-xs" onclick="event.stopPropagation(); openProductModal(${JSON.stringify(product).replace(/"/g, '&quot;')})">Editar</button>
@@ -173,20 +168,22 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             // Add to Cart Logic
             const btn = card.querySelector('.card-btn-add');
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                if (typeof Cart !== 'undefined') {
-                    Cart.addItem(product);
-                    btn.textContent = "¡Añadido!";
-                    btn.classList.add('added');
-                    setTimeout(() => {
-                        btn.textContent = "Añadir al Carrito";
-                        btn.classList.remove('added');
-                    }, 2000);
-                } else {
-                    console.error("Cart module not found");
-                }
-            };
+            if (btn) {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    if (typeof Cart !== 'undefined') {
+                        Cart.addItem(product);
+                        btn.textContent = "¡Añadido!";
+                        btn.classList.add('added');
+                        setTimeout(() => {
+                            btn.textContent = "Añadir al Carrito";
+                            btn.classList.remove('added');
+                        }, 2000);
+                    } else {
+                        console.error("Cart module not found");
+                    }
+                };
+            }
 
             // Hover Rotate Images
             if (hasMultipleImages) {
@@ -222,6 +219,13 @@ document.addEventListener('DOMContentLoaded', async function () {
                 });
             }
         });
+
+        // Initialize reveal for new cards
+        if (typeof applyReveal === 'function') {
+            applyReveal(productsGrid.querySelectorAll('.reveal'));
+        } else if (window.revealObserver) {
+            productsGrid.querySelectorAll('.reveal').forEach(el => window.revealObserver.observe(el));
+        }
     }
 
     // Check URL params for category
@@ -248,31 +252,74 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Filter Logic
     window.applyFilters = function () {
-        let filtered = window.products || [];
+        // Fade out existing cards
+        const cards = productsGrid.querySelectorAll('.reveal');
+        cards.forEach(card => card.classList.add('fade-out'));
 
-        // Category
-        const cat = categoryFilter.value;
-        if (cat) {
-            filtered = filtered.filter(p => p.category && p.category.toLowerCase() === cat.toLowerCase());
-        }
+        // Short delay to allow animation to start
+        setTimeout(() => {
+            let filtered = [...(window.products || [])];
 
-        // Subcategory (Global variable logic)
-        if (currentSubcategory) {
-            // Ensure case insensitive and trimmed match
-            filtered = filtered.filter(p => p.subcategory && p.subcategory.trim().toLowerCase() === currentSubcategory.trim().toLowerCase());
-        }
+            // Category
+            const cat = categoryFilter.value;
+            if (cat) {
+                filtered = filtered.filter(p => p.category && p.category.toLowerCase() === cat.toLowerCase());
+            }
 
-        // Search
-        const query = searchInput.value.toLowerCase();
-        if (query) {
-            filtered = filtered.filter(p =>
-                (p.title && p.title.toLowerCase().includes(query)) ||
-                (p.description && p.description.toLowerCase().includes(query))
-            );
-        }
+            // Subcategory
+            if (currentSubcategory) {
+                filtered = filtered.filter(p => p.subcategory && p.subcategory.trim().toLowerCase() === currentSubcategory.trim().toLowerCase());
+            }
 
-        renderProducts(filtered);
+            // Search
+            const query = searchInput.value.toLowerCase();
+            if (query) {
+                filtered = filtered.filter(p =>
+                    (p.title && p.title.toLowerCase().includes(query)) ||
+                    (p.description && p.description.toLowerCase().includes(query))
+                );
+            }
+
+            // Price Range
+            const priceRange = document.getElementById('priceRange');
+            if (priceRange) {
+                const maxPrice = Number(priceRange.value);
+                filtered = filtered.filter(p => p.price <= maxPrice);
+            }
+
+            // Sort
+            const sort = document.getElementById('sortFilter')?.value || 'newest';
+            if (sort === 'price-asc') filtered.sort((a, b) => a.price - b.price);
+            else if (sort === 'price-desc') filtered.sort((a, b) => b.price - a.price);
+            else if (sort === 'name-asc') filtered.sort((a, b) => a.title.localeCompare(b.title));
+            else if (sort === 'newest') filtered.sort((a, b) => b.id - a.id);
+
+            renderProducts(filtered);
+        }, 300);
     };
+
+    // Event Listeners for Filters
+    if (searchInput) {
+        let timeout;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(applyFilters, 500);
+        });
+    }
+
+    if (categoryFilter) categoryFilter.addEventListener('change', applyFilters);
+    
+    const sortFilter = document.getElementById('sortFilter');
+    if (sortFilter) sortFilter.addEventListener('change', applyFilters);
+
+    const priceRange = document.getElementById('priceRange');
+    const priceDisplay = document.getElementById('priceDisplay');
+    if (priceRange) {
+        priceRange.addEventListener('input', () => {
+            if (priceDisplay) priceDisplay.textContent = `Gs. ${Number(priceRange.value).toLocaleString('es-PY')}`;
+        });
+        priceRange.addEventListener('change', applyFilters);
+    }
 
     window.clearSubcat = function () {
         currentSubcategory = "";

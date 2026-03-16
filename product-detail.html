@@ -8,6 +8,7 @@
     <!-- CSS -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/website.css">
+    <link rel="stylesheet" href="css/animations.css">
 
     <style>
         #refund-overlay {
@@ -173,7 +174,7 @@
     <main
         class="container mx-auto max-w-6xl px-4 md:px-6 py-12 md:py-24 grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 min-h-[80vh]">
         <div class="gallery-wrapper flex flex-col gap-4">
-            <div class="detail-image aspect-square flex items-center justify-center bg-gradient-to-br from-zinc-900 to-black border rounded-lg overflow-hidden shadow-lg p-4 md:p-8"
+            <div class="detail-image aspect-square flex items-center justify-center bg-gradient-to-br from-zinc-900 to-black border rounded-lg overflow-hidden shadow-lg p-4 md:p-8 reveal"
                 id="imgContainer">
                 <!-- Main Image Injected Here -->
             </div>
@@ -185,9 +186,9 @@
         <div class="detail-info flex flex-col justify-center">
             <span class="detail-category text-primary uppercase tracking-widest text-sm font-semibold mb-2"
                 id="catDisplay">Categoría</span>
-            <h1 class="detail-title text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6"
+            <h1 class="detail-title text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 reveal"
                 id="titleDisplay">Cargando...</h1>
-            <div class="detail-price text-3xl font-light mb-8 flex items-center gap-2">
+            <div class="detail-price text-3xl font-light mb-8 flex items-center gap-2 reveal">
                 <span id="priceDisplay" class="text-primary font-bold">...</span>
             </div>
             <p class="detail-description text-muted-foreground text-lg leading-relaxed mb-10 border-l-2 border-primary pl-6"
@@ -277,6 +278,7 @@
 
     <script src="js/data.js"></script>
     <script src="js/cart.js"></script>
+    <script src="js/website.js"></script>
     <script>
         const API_URL = 'http://localhost:3000/api/products';
         const STATIC_URL = 'http://localhost:3000';
@@ -348,8 +350,8 @@
                 if (discount > 0) {
                     document.getElementById('priceDisplay').innerHTML = `
                         <div class="flex flex-col">
-                            <span class="text-sm text-muted-foreground line-through">Gs. ${originalPrice.toLocaleString('es-PY')}</span>
-                            <span class="text-2xl font-bold text-primary">Gs. ${discountedPrice.toLocaleString('es-PY')}</span>
+                            <span style="text-decoration: line-through; color: #9ca3af; font-size: 1rem; margin-bottom: 0.25rem;">Gs. ${originalPrice.toLocaleString('es-PY')}</span>
+                            <span class="text-3xl font-bold text-primary">Gs. ${discountedPrice.toLocaleString('es-PY')}</span>
                         </div>
                     `;
                     // Add discount badge if it doesn't exist
