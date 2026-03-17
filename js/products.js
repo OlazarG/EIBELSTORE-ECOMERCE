@@ -7,6 +7,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     const categoryFilter = document.getElementById('categoryFilter');
     const productsCount = document.getElementById('productsCount');
 
+    // Admin state
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = token && user.role === 'admin';
+
     // Fetch Products
     try {
         const response = await fetch(API_URL);
@@ -315,6 +320,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     const priceRange = document.getElementById('priceRange');
     const priceDisplay = document.getElementById('priceDisplay');
     if (priceRange) {
+        // Initialize display
+        if (priceDisplay) priceDisplay.textContent = `Gs. ${Number(priceRange.value).toLocaleString('es-PY')}`;
+
         priceRange.addEventListener('input', () => {
             if (priceDisplay) priceDisplay.textContent = `Gs. ${Number(priceRange.value).toLocaleString('es-PY')}`;
         });
@@ -332,9 +340,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     // --- Admin Logic for Products Page ---
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = token && user.role === 'admin';
 
     // Expose admin functions globally if not already (website.js might load first, but let's be safe)
     if (!window.deleteProduct) {

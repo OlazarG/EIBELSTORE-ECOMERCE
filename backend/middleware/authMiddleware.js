@@ -1,5 +1,9 @@
 const jwt = require('jsonwebtoken');
-const SECRET_KEY = process.env.JWT_SECRET || 'supersecretkey'; // In production use .env
+
+if (!process.env.JWT_SECRET) {
+    throw new Error('FATAL: JWT_SECRET environment variable is not set.');
+}
+const SECRET_KEY = process.env.JWT_SECRET;
 
 const verifyToken = (req, res, next) => {
     const token = req.headers['authorization'];
@@ -12,9 +16,9 @@ const verifyToken = (req, res, next) => {
     const bearer = token.split(' ');
     const bearerToken = bearer[1];
 
-    jwt.verify(bearerToken, SECRET_KEY, (err, decoded) => {
+    jwt.verify(bearerToken, SECRET_KEY, { algorithms: ['HS256'] }, (err, decoded) => {
         if (err) {
-            return res.status(401).json({ message: 'Unauthorized' });
+            return res.status(401).json({ error: 'Token inválido o expirado' });
         }
         req.userId = decoded.id;
         req.userRole = decoded.role;

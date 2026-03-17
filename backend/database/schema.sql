@@ -16,5 +16,7 @@ CREATE TABLE IF NOT EXISTS products (
     badge VARCHAR(50),
     image VARCHAR(255),
     gallery_urls TEXT, -- Stored as JSON string
+    is_active BOOLEAN DEFAULT true,
+    discount_percentage INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

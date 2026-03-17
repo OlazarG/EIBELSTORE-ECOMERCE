@@ -1,6 +1,6 @@
 // Cart Logic
 const Cart = {
-    whatsappNumber: '595981000000', // Reemplazar con el número del negocio
+    whatsappNumber: '595971970225', // Actualizado al número del footer
     items: [],
     isOpen: false,
 
@@ -71,11 +71,22 @@ const Cart = {
     addItem(product) {
         // Check if exists
         const existing = this.items.find(item => item.id === product.id);
+
+        // Use discounted price if applicable
+        const discPercent = parseInt(product.discount_percentage) || 0;
+        const finalPrice = discPercent > 0
+            ? product.price * (1 - discPercent / 100)
+            : product.price;
+
         if (existing) {
             existing.quantity++;
+            // Update price in case it changed (optional but good)
+            existing.price = finalPrice;
         } else {
             this.items.push({
                 ...product,
+                price: finalPrice, // Save as active price
+                originalPrice: product.price, // Keep original
                 quantity: 1
             });
         }
@@ -100,6 +111,8 @@ const Cart = {
         if (modal && overlay) {
             modal.classList.add('active');
             overlay.classList.add('active');
+            modal.classList.remove('hidden');
+            overlay.classList.remove('hidden');
         }
     },
 
@@ -141,8 +154,14 @@ const Cart = {
         this.items.forEach(item => {
             const subtotal = item.price * item.quantity;
             total += subtotal;
+            
+            const hasDiscount = item.discount_percentage > 0;
+            const priceDetail = hasDiscount 
+                ? `Gs. ${item.price.toLocaleString('es-PY')} (Desc. ${item.discount_percentage}%)` 
+                : `Gs. ${item.price.toLocaleString('es-PY')}`;
+
             message += `▪️ ${item.title} (x${item.quantity})\n`;
-            message += `   └─ ${subtotal.toLocaleString('es-PY')} Gs.\n`;
+            message += `   └─ ${priceDetail} | Sub: ${subtotal.toLocaleString('es-PY')} Gs.\n`;
         });
 
         message += `\n----------------------------\n`;
@@ -223,16 +242,26 @@ const Cart = {
             container.innerHTML = '<div class="text-center text-muted-foreground p-4">Tu carrito está vacío</div>';
         } else {
             this.items.forEach(item => {
-                total += item.price * item.quantity;
+                const itemPrice = Number(item.price) || 0;
+                const itemOriginalPrice = Number(item.originalPrice) || itemPrice;
+                const itemQty = Number(item.quantity) || 1;
+
+                total += itemPrice * itemQty;
                 const itemEl = document.createElement('div');
                 itemEl.className = 'cart-item flex items-center gap-4 p-3 border rounded-md relative bg-card';
+                
+                // Price display logic
+                const priceHtml = item.discount_percentage > 0 
+                    ? `<span class="line-through text-[10px] text-muted-foreground mr-1">Gs. ${itemOriginalPrice.toLocaleString('es-PY')}</span> Gs. ${itemPrice.toLocaleString('es-PY')}`
+                    : `Gs. ${itemPrice.toLocaleString('es-PY')}`;
+
                 itemEl.innerHTML = `
                     <div class="w-16 h-16 bg-muted/50 rounded flex-shrink-0 p-1">
                         <img src="${item.image}" alt="${item.title}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal" onerror="this.src='https://placehold.co/100x100?text=No+Image'">
                     </div>
                     <div class="flex-1 min-w-0 pr-6">
                         <h4 class="font-medium text-sm line-clamp-2 leading-tight">${item.title}</h4>
-                        <p class="text-xs text-muted-foreground mt-1">${item.quantity} x Gs. ${item.price.toLocaleString('es-PY')}</p>
+                        <p class="text-xs text-muted-foreground mt-1">${item.quantity} x ${priceHtml}</p>
                     </div>
                     <button class="remove-item absolute right-2 top-2 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs hover:bg-destructive hover:text-destructive-foreground transition-colors" data-id="${item.id}">&times;</button>
                 `;
@@ -276,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!document.getElementById('checkout-modal')) {
         const checkoutHTML = `
             <div id="checkout-overlay" class="checkout-overlay fixed inset-0 bg-black/80 z-50 opacity-0 pointer-events-none transition-opacity duration-200 backdrop-blur-sm"></div>
-            <div id="checkout-modal" class="checkout-modal fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-xl sm:rounded-xl opacity-0 pointer-events-none scale-95 transition-all duration-200">
+            <div id="checkout-modal" class="checkout-modal fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-xl sm:rounded-xl opacity-0 pointer-events-none scale-95 transition-all duration-200 hidden">
                 <div class="flex items-center justify-between border-b pb-4">
                     <h2 class="text-xl font-bold tracking-tight">Finalizar Pedido</h2>
                     <button id="close-checkout" class="close-checkout btn btn-ghost btn-icon w-8 h-8 rounded-full">&times;</button>
@@ -288,8 +317,33 @@ document.addEventListener('DOMContentLoaded', () => {
                             <input type="text" id="customer-name" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="Ej: Juan Pérez">
                         </div>
                         <div class="space-y-2">
-                            <label for="customer-address" class="text-sm font-medium leading-none">Dirección de Entrega *</label>
-                            <input type="text" id="customer-address" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="Ej: Av. España 123">
+                            <label for="customer-address" class="text-sm font-medium leading-none">Ciudad de Entrega *</label>
+                            <select id="customer-address" required class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                                <option value="" disabled selected>Selecciona tu ciudad</option>
+                                <option value="Asunción">Asunción</option>
+                                <option value="Ciudad del Este">Ciudad del Este</option>
+                                <option value="San Lorenzo">San Lorenzo</option>
+                                <option value="Luque">Luque</option>
+                                <option value="Capiatá">Capiatá</option>
+                                <option value="Lambaré">Lambaré</option>
+                                <option value="Fernando de la Mora">Fernando de la Mora</option>
+                                <option value="Limpio">Limpio</option>
+                                <option value="Ñemby">Ñemby</option>
+                                <option value="Encarnación">Encarnación</option>
+                                <option value="Mariano Roque Alonso">Mariano Roque Alonso</option>
+                                <option value="Pedro Juan Caballero">Pedro Juan Caballero</option>
+                                <option value="Villa Elisa">Villa Elisa</option>
+                                <option value="Caaguazú">Caaguazú</option>
+                                <option value="Coronel Oviedo">Coronel Oviedo</option>
+                                <option value="Hernandarias">Hernandarias</option>
+                                <option value="Presidente Franco">Presidente Franco</option>
+                                <option value="Itauguá">Itauguá</option>
+                                <option value="Concepción">Concepción</option>
+                                <option value="Villarrica">Villarrica</option>
+                                <option value="Caacupé">Caacupé</option>
+                                <option value="Pilar">Pilar</option>
+                                <option value="Otro">Otro (coordinar por chat)</option>
+                            </select>
                         </div>
                         <div class="space-y-2">
                             <label for="payment-method" class="text-sm font-medium leading-none">Método de Pago *</label>

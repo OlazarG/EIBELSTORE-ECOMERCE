@@ -2,7 +2,10 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const pool = require('../config/db');
 
-const SECRET_KEY = process.env.JWT_SECRET || 'supersecretkey';
+if (!process.env.JWT_SECRET) {
+    throw new Error('FATAL: JWT_SECRET environment variable is not set.');
+}
+const SECRET_KEY = process.env.JWT_SECRET;
 
 exports.login = async (req, res) => {
     const { username, password } = req.body;
@@ -14,21 +17,21 @@ exports.login = async (req, res) => {
         const user = result.rows[0];
 
         if (!user) {
-            console.log(`User not found: ${username}`);
-            return res.status(404).json({ message: 'User not found' });
+            console.warn(`FAILED LOGIN: User not found - ${username}`);
+            return res.status(401).json({ message: 'Usuario o contraseña incorrectos' });
         }
 
         console.log('Comparing passwords...');
         const passwordIsValid = await bcrypt.compare(password, user.password);
 
         if (!passwordIsValid) {
-            console.log(`Invalid password for user: ${username}`);
-            return res.status(401).json({ message: 'Invalid password' });
+            console.warn(`FAILED LOGIN: Invalid password for user - ${username}`);
+            return res.status(401).json({ message: 'Usuario o contraseña incorrectos' });
         }
 
         console.log('Generating JWT token...');
         const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, {
-            expiresIn: 86400 // 24 hours
+            expiresIn: '2h' // Reduced to 2 hours for security
         });
 
         console.log(`Login successful for user: ${username}`);

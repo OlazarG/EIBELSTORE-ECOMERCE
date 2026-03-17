@@ -12,6 +12,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     ];
 
+    // --- Admin state ---
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = token && user.role === 'admin';
+
     // --- Initialization ---
     initEvents();
     loadFeaturedProducts();
@@ -306,9 +311,6 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // --- Admin Logic ---
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = token && user.role === 'admin';
 
     if (isAdmin) {
         renderAdminSidebar();

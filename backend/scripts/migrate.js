@@ -38,7 +38,7 @@ async function migrate() {
                 const res = await client.query('SELECT id FROM products WHERE title = $1', [p.title]);
                 if (res.rows.length === 0) {
                     await client.query(
-                        'INSERT INTO products (title, category, subcategory, price, stock, description, badge, image, gallery_urls) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+                        'INSERT INTO products (title, category, subcategory, price, stock, description, badge, image, gallery_urls, is_active, discount_percentage) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
                         [
                             p.title,
                             p.category,
@@ -48,7 +48,9 @@ async function migrate() {
                             p.description || '',
                             p.badge || '',
                             p.image || '',
-                            JSON.stringify(p.gallery_urls || [])
+                            JSON.stringify(p.gallery_urls || []),
+                            p.is_active !== undefined ? p.is_active : true,
+                            p.discount_percentage || 0
                         ]
                     );
                 }
