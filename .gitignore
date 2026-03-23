@@ -28,3 +28,17 @@ npm-debug.log*
 # Archivos de configuración local
 .env
 .env.local
+backend/.env
+
+# Uploads (managed by Cloudinary, no need to commit)
+backend/uploads/
+
+# Error logs
+backend/error_debug.log
+
+# Test & utility scripts
+backend/test_*.js
+backend/diagnose.js
+backend/verify_*.js
+backend/check_*.js
+backend/migrate_*.js

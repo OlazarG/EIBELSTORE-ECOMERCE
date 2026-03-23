@@ -1,4 +1,5 @@
 const productService = require('../services/productService');
+const { deleteFromCloudinary } = require('../utils/cloudinary');
 
 exports.getAllProducts = async (req, res) => {
     try {
@@ -53,14 +54,44 @@ exports.updateProduct = async (req, res) => {
     }
 
     try {
+        // Handle image deletions if provided
+        const deletedImages = req.body.deleted_images ? (typeof req.body.deleted_images === 'string' ? JSON.parse(req.body.deleted_images) : req.body.deleted_images) : [];
+        if (deletedImages.length > 0) {
+            console.log("Images to delete from Cloudinary:", deletedImages);
+            for (const imageUrl of deletedImages) {
+                await deleteFromCloudinary(imageUrl);
+            }
+        }
+
+        // Fetch current product to handle gallery filtering
+        const currentProduct = await productService.getProductById(id);
+        if (!currentProduct) return res.status(404).json({ message: 'Product not found' });
+
+        // Filter out deleted images from existing gallery
+        let updatedGallery = (currentProduct.gallery_urls || []).filter(url => !deletedImages.includes(url));
+        
+        // Add new images if any
+        if (req.files && req.files.length > 0) {
+            const newImages = req.files.map(f => f.path);
+            updatedGallery = [...updatedGallery, ...newImages];
+        }
+
+        // Determine main image
+        // If main image was deleted, pick the first from the updated gallery, or empty
+        let mainImage = currentProduct.image;
+        if (deletedImages.includes(mainImage)) {
+            mainImage = updatedGallery.length > 0 ? updatedGallery[0] : '';
+        } else if (req.files && req.files.length > 0 && !mainImage) {
+            mainImage = req.files[0].path;
+        }
+
         const updatedProduct = await productService.updateProduct(id, {
             title, category, subcategory, price, stock, description, badge, 
-            is_active, discount_percentage, image, gallery_urls
+            is_active, discount_percentage, 
+            image: mainImage, 
+            gallery_urls: updatedGallery
         });
 
-        if (!updatedProduct) {
-            return res.status(404).json({ message: 'Product not found' });
-        }
         res.json(updatedProduct);
     } catch (err) {
         console.error("UPDATE ERROR:", err);
@@ -70,9 +101,18 @@ exports.updateProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
     try {
-        const deleted = await productService.deleteProduct(req.params.id);
-        if (!deleted) return res.status(404).json({ message: 'Product not found' });
-        res.json({ message: 'Product deleted' });
+        const deletedProduct = await productService.deleteProduct(req.params.id);
+        if (!deletedProduct) return res.status(404).json({ message: 'Product not found' });
+
+        // Clean up Cloudinary
+        if (deletedProduct.image) await deleteFromCloudinary(deletedProduct.image);
+        if (deletedProduct.gallery_urls && Array.isArray(deletedProduct.gallery_urls)) {
+            for (const url of deletedProduct.gallery_urls) {
+                await deleteFromCloudinary(url);
+            }
+        }
+
+        res.json({ message: 'Product deleted successfully and images removed' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Error interno del servidor' });

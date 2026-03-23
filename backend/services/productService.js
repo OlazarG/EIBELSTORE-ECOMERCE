@@ -111,7 +111,7 @@ class ProductService {
 
     async deleteProduct(id) {
         const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING *', [id]);
-        return result.rows.length > 0;
+        return result.rows[0];
     }
 }
 

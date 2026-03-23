@@ -1,6 +1,6 @@
 // Cart Logic
 const Cart = {
-    whatsappNumber: '595971970225', // Actualizado al número del footer
+    whatsappNumber: '595993437154', // Actualizado al número del footer
     items: [],
     isOpen: false,
 
@@ -143,31 +143,20 @@ const Cart = {
         }
 
         // WhatsApp Format
-        let message = `*HOLA VIDALAB! NUEVO PEDIDO WEB* 🛒\n\n`;
-        message += `👤 *Cliente:* ${name}\n`;
-        message += `📍 *Dirección:* ${address}\n`;
-        message += `💳 *Pago:* ${payment}\n`;
-        message += `----------------------------\n`;
-        message += `*DETALLE:*\n\n`;
+        let message = `*NUEVO PEDIDO - EIBELSTORE*\n`;
+        message += `*Cliente:* ${name}\n`;
+        message += `*Pago:* ${payment}\n`;
+        message += `*DETALLE:*\n`;
 
         let total = 0;
         this.items.forEach(item => {
             const subtotal = item.price * item.quantity;
             total += subtotal;
-            
-            const hasDiscount = item.discount_percentage > 0;
-            const priceDetail = hasDiscount 
-                ? `Gs. ${item.price.toLocaleString('es-PY')} (Desc. ${item.discount_percentage}%)` 
-                : `Gs. ${item.price.toLocaleString('es-PY')}`;
-
-            message += `▪️ ${item.title} (x${item.quantity})\n`;
-            message += `   └─ ${priceDetail} | Sub: ${subtotal.toLocaleString('es-PY')} Gs.\n`;
+            message += `* ${item.title} (x${item.quantity}) — Gs. ${subtotal.toLocaleString('es-PY')}\n`;
         });
 
-        message += `\n----------------------------\n`;
-        message += `💰 *TOTAL A PAGAR: ${total.toLocaleString('es-PY')} Gs.*\n`;
-        message += `----------------------------\n`;
-        message += `(El costo de envío y ubicación se coordinarán en el chat).`;
+        message += `*TOTAL: Gs. ${total.toLocaleString('es-PY')}*\n`;
+        message += `Envianos tu ubicación por aquí para cotizar el envío y agendar tu entrega.`;
 
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/${this.whatsappNumber}?text=${encodedMessage}`;
@@ -249,9 +238,9 @@ const Cart = {
                 total += itemPrice * itemQty;
                 const itemEl = document.createElement('div');
                 itemEl.className = 'cart-item flex items-center gap-4 p-3 border rounded-md relative bg-card';
-                
+
                 // Price display logic
-                const priceHtml = item.discount_percentage > 0 
+                const priceHtml = item.discount_percentage > 0
                     ? `<span class="line-through text-[10px] text-muted-foreground mr-1">Gs. ${itemOriginalPrice.toLocaleString('es-PY')}</span> Gs. ${itemPrice.toLocaleString('es-PY')}`
                     : `Gs. ${itemPrice.toLocaleString('es-PY')}`;
 

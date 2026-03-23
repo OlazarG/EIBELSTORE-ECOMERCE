@@ -132,8 +132,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             ` : '';
 
             // Image Logic
-            const hasMultipleImages = product.images && product.images.length > 1;
             const displayImage = (product.images && product.images.length > 0) ? product.images[0] : (product.image || 'image/placeholder.jpg');
+            const displayImg = displayImage; // For consistency
             const imgId = `prod-img-${product.id}`;
 
             card.innerHTML = `
@@ -157,8 +157,8 @@ document.addEventListener('DOMContentLoaded', async function () {
                         </div>
                         ${isAdmin ? `
                             <div class="flex gap-2">
-                                <button class="btn btn-outline btn-sm px-2 py-1 h-8 text-xs" onclick="event.stopPropagation(); openProductModal(${JSON.stringify(product).replace(/"/g, '&quot;')})">Editar</button>
-                                <button class="btn btn-ghost btn-sm px-2 py-1 h-8 text-xs text-destructive hover:bg-destructive/10" onclick="event.stopPropagation(); deleteProduct(${product.id})">Del</button>
+                                <button class="btn btn-outline btn-sm px-2 py-1 h-8 text-xs product-edit-btn" data-product="${JSON.stringify(product).replace(/"/g, '&quot;')}">Editar</button>
+                                <button class="btn btn-ghost btn-sm px-2 py-1 h-8 text-xs text-destructive hover:bg-destructive/10 product-delete-btn" data-id="${product.id}">Del</button>
                             </div>
                         ` : `
                             <button class="btn btn-default btn-sm card-btn-add flex items-center shadow-sm hover:shadow-md transition-all" data-id="${product.id}">
@@ -223,6 +223,24 @@ document.addEventListener('DOMContentLoaded', async function () {
                     }, 200);
                 });
             }
+
+            // Click Delegation for Edit/Delete
+            card.addEventListener('click', (e) => {
+                const target = e.target;
+                if (target.classList.contains('product-edit-btn')) {
+                    e.stopPropagation();
+                    const productData = JSON.parse(target.getAttribute('data-product'));
+                    if (typeof window.openProductModal === 'function') {
+                        window.openProductModal(productData);
+                    }
+                } else if (target.classList.contains('product-delete-btn')) {
+                    e.stopPropagation();
+                    const id = target.getAttribute('data-id');
+                    if (typeof window.deleteProduct === 'function') {
+                        window.deleteProduct(id);
+                    }
+                }
+            });
         });
 
         // Initialize reveal for new cards

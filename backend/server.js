@@ -8,6 +8,12 @@ const helmet = require('helmet');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+// Trust Nginx reverse proxy (important for DigitalOcean)
+if (NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+}
 
 // Security Headers with custom CSP for images
 app.use(helmet({
@@ -26,21 +32,24 @@ app.use((req, res, next) => {
     next();
 });
 
-// Ensure uploads directory exists
+// Ensure uploads & logs directories exist
 const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir);
-}
+const logsDir = path.join(__dirname, 'logs');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
+if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
 
 // Middleware
-const allowedOrigins = [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    process.env.CORS_ORIGIN
-].filter(Boolean);
+const allowedOrigins = NODE_ENV === 'production'
+    ? [process.env.CORS_ORIGIN].filter(Boolean)
+    : [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        process.env.CORS_ORIGIN
+    ].filter(Boolean);
 
 app.use(cors({
-    origin: allowedOrigins
+    origin: allowedOrigins,
+    credentials: true
 }));
 
 app.use(express.json({ limit: '10kb', strict: true }));

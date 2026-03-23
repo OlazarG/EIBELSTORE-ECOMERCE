@@ -22,7 +22,7 @@ async function loadProducts() {
             }
             grid.innerHTML = products.map(p => {
                 const img = p.image_url || p.image || 'https://placehold.co/300x200';
-                const displayImg = img.startsWith('/uploads') ? `http://localhost:3000${img}` : img;
+                const displayImg = img;
                 const discount = parseInt(p.discount_percentage) || 0;
                 const originalPrice = Number(p.price);
                 const discountedPrice = discount > 0 ? originalPrice * (1 - discount / 100) : originalPrice;
@@ -98,7 +98,7 @@ async function togglePublish(id, currentStatus) {
 
         const updateRes = await fetch(`/api/products/${id}`, {
             method: 'PUT',
-            headers: { 'Authorization': `Bearer ${token}` },
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
             body: data
         });
 
@@ -115,12 +115,15 @@ async function togglePublish(id, currentStatus) {
 
 // Modal Logic
 let selectedFiles = [];
+let deletedURLs = [];
 const modal = document.getElementById('productModal');
 const form = document.getElementById('productForm');
 
 function openModal(product = null) {
     selectedFiles = [];
+    deletedURLs = [];
     updateImagePreviews();
+    updateExistingImagePreviews(product);
 
     if (product) {
         document.getElementById('modalTitle').textContent = 'Editar Producto';
@@ -205,7 +208,50 @@ if (fileInput) {
     });
 }
 
-function updateImagePreviews() {
+    // Render Existing Images
+    function updateExistingImagePreviews(product) {
+        const container = document.getElementById('existingImagePreviews');
+        if (!container) return;
+        container.innerHTML = '';
+
+        if (!product) return;
+
+        const allImages = [];
+        if (product.image) allImages.push(product.image);
+        if (product.gallery_urls && Array.isArray(product.gallery_urls)) {
+            product.gallery_urls.forEach(url => {
+                if (url !== product.image) allImages.push(url);
+            });
+        }
+
+        allImages.forEach(url => {
+            if (deletedURLs.includes(url)) return;
+
+            const div = document.createElement('div');
+            div.className = 'preview-item';
+            div.style.cssText = 'position: relative; display: inline-block;';
+
+            const img = document.createElement('img');
+            img.src = url;
+            img.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #555;';
+
+            const btn = document.createElement('button');
+            btn.innerHTML = '×';
+            btn.type = 'button';
+            btn.style.cssText = 'position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);';
+            btn.onclick = () => {
+                deletedURLs.push(url);
+                updateExistingImagePreviews(product);
+            };
+
+            div.appendChild(img);
+            div.appendChild(btn);
+            container.appendChild(div);
+        });
+    }
+
+    // Render New Image Previews
+    function updateImagePreviews() {
     const container = document.getElementById('imagePreviews');
     if (!container) return;
     container.innerHTML = '';
@@ -245,13 +291,16 @@ if (form) {
         // Fix for checkbox state
         formData.set('is_active', document.getElementById('is_active').checked);
 
+        // Process deletions
+        formData.append('deleted_images', JSON.stringify(deletedURLs));
+
         const method = id ? 'PUT' : 'POST';
         const url = id ? `/api/products/${id}` : '/api/products';
 
         try {
             const res = await fetch(url, {
                 method: method,
-                headers: { 'Authorization': `Bearer ${token}` },
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
                 body: formData
             });
             if (res.ok) {
@@ -272,7 +321,7 @@ async function deleteProduct(id) {
     try {
         const res = await fetch(`/api/products/${id}`, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         if (res.ok) loadProducts();
         else alert('Error al eliminar');

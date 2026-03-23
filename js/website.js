@@ -393,11 +393,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Global file tracking
     let selectedFiles = [];
+    let deletedURLs = [];
 
     window.openProductModal = function (product) {
         const modal = document.getElementById('productModal');
         const title = document.getElementById('modalTitle');
         const form = document.getElementById('productForm');
+
+        deletedURLs = [];
+        updateExistingImagePreviews(product);
 
         // Reset files
         selectedFiles = [];
@@ -417,10 +421,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (document.getElementById('stock')) document.getElementById('stock').value = product.stock || 0;
             if (document.getElementById('subcategory')) document.getElementById('subcategory').value = product.subcategory || '';
             if (document.getElementById('is_active')) document.getElementById('is_active').checked = product.is_active !== false;
-
-            // Show existing images (read-only for now, or could implement delete for existing)
-            // For simplicity, we just show them. To delete existing, we'd need backend support to remove specific URLs.
-            // Let's focus on NEW files for now as requested "que se agregan".
         } else {
             title.textContent = 'Nuevo Producto';
             form.reset();
@@ -444,6 +444,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
         modal.style.display = 'flex';
     };
+
+    function updateExistingImagePreviews(product) {
+        const container = document.getElementById('existingImagePreviews');
+        if (!container) return;
+        container.innerHTML = '';
+
+        if (!product) return;
+
+        const allImages = [];
+        if (product.image) allImages.push(product.image);
+        if (product.gallery_urls && Array.isArray(product.gallery_urls)) {
+            product.gallery_urls.forEach(url => {
+                if (url !== product.image) allImages.push(url);
+            });
+        }
+
+        allImages.forEach(url => {
+            if (deletedURLs.includes(url)) return;
+
+            const div = document.createElement('div');
+            div.className = 'preview-item';
+            div.style.cssText = 'position: relative; display: inline-block; margin: 5px;';
+
+            const img = document.createElement('img');
+            img.src = url;
+            img.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #555;';
+
+            const btn = document.createElement('button');
+            btn.innerHTML = '×';
+            btn.type = 'button';
+            btn.style.cssText = 'position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);';
+            btn.onclick = (e) => {
+                e.preventDefault();
+                deletedURLs.push(url);
+                updateExistingImagePreviews(product);
+            };
+
+            div.appendChild(img);
+            div.appendChild(btn);
+            container.appendChild(div);
+        });
+    }
 
     function updateImagePreviews() {
         const container = document.getElementById('imagePreviews');
@@ -501,6 +543,9 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.set('is_active', activeCheck.checked);
         }
 
+        // Add deletions
+        formData.append('deleted_images', JSON.stringify(deletedURLs));
+
         // Determine method and URL based on presence of a valid ID
         const method = id ? 'PUT' : 'POST';
         const url = id ? `/api/products/${id}` : '/api/products';
@@ -508,9 +553,10 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log(`Submitting form to ${url} via ${method} with ID: ${id || 'NEW'}`);
 
         try {
+            const tokenValue = localStorage.getItem('token');
             const response = await fetch(url, {
                 method: method,
-                headers: { 'Authorization': `Bearer ${token}` },
+                headers: tokenValue ? { 'Authorization': `Bearer ${tokenValue}` } : {},
                 body: formData
             });
 
@@ -529,9 +575,10 @@ document.addEventListener('DOMContentLoaded', function () {
     window.deleteProduct = async function (id) {
         if (!confirm('¿Eliminar producto?')) return;
         try {
+            const tokenValue = localStorage.getItem('token');
             const response = await fetch(`/api/products/${id}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: tokenValue ? { 'Authorization': `Bearer ${tokenValue}` } : {}
             });
             if (response.ok) window.location.reload();
             else alert('Error al eliminar');
