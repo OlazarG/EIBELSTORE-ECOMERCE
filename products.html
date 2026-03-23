@@ -470,40 +470,10 @@
 
     <!-- Scripts -->
     <script src="js/data.js"></script>
-    <script src="js/background.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/website.js"></script> <!-- Included for ToggleSubmenu logic -->
     <script src="js/products.js"></script>
-
-    <script>
-        (function () {
-            const overlay = document.getElementById('refund-overlay');
-            const openBtn = document.getElementById('open-refund-modal');
-            const closeBtn = document.getElementById('close-refund-modal');
-
-            if (!overlay || !openBtn || !closeBtn) return;
-
-            function openRefundModal(e) {
-                e.preventDefault();
-                overlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeRefundModal() {
-                overlay.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-
-            openBtn.addEventListener('click', openRefundModal);
-            closeBtn.addEventListener('click', closeRefundModal);
-            overlay.addEventListener('click', function (e) {
-                if (e.target === overlay) closeRefundModal();
-            });
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape') closeRefundModal();
-            });
-        })();
-    </script>
+    <script src="js/index.js"></script>
 
     <!-- Product Modal -->
     <div id="productModal"

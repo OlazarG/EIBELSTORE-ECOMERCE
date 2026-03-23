@@ -672,62 +672,10 @@
 
     <!-- Scripts -->
     <script src="js/data.js?v=1.1"></script> <!-- Data Source -->
-    <script src="js/background.js?v=1.1"></script>
     <script src="js/cart.js?v=1.1"></script>
     <script src="js/website.js?v=1.1"></script>
 
-    <script>
-        (function () {
-            const overlay = document.getElementById('refund-overlay');
-            const openBtn = document.getElementById('open-refund-modal');
-            const closeBtn = document.getElementById('close-refund-modal');
-            const accordionBtn = document.getElementById('toggle-refund-accordion');
-            const accordionContent = document.getElementById('refund-accordion-content');
-            const refundIcon = accordionBtn ? accordionBtn.querySelector('.refund-icon') : null;
-
-            function openRefundModal(e) {
-                e.preventDefault();
-                if (accordionContent && !accordionContent.classList.contains('hidden')) {
-                    accordionContent.classList.add('hidden');
-                    if (refundIcon) refundIcon.classList.remove('open');
-                }
-                overlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeRefundModal() {
-                overlay.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-
-            function toggleAccordion(e) {
-                e.preventDefault();
-                if (overlay.classList.contains('active')) {
-                    closeRefundModal();
-                }
-                accordionContent.classList.toggle('hidden');
-                refundIcon.classList.toggle('open');
-            }
-
-            if (openBtn) openBtn.addEventListener('click', openRefundModal);
-            if (closeBtn) closeBtn.addEventListener('click', closeRefundModal);
-            if (accordionBtn) accordionBtn.addEventListener('click', toggleAccordion);
-            if (overlay) {
-                overlay.addEventListener('click', function (e) {
-                    if (e.target === overlay) closeRefundModal();
-                });
-            }
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape') {
-                    closeRefundModal();
-                    if (accordionContent && !accordionContent.classList.contains('hidden')) {
-                        accordionContent.classList.add('hidden');
-                        if (refundIcon) refundIcon.classList.remove('open');
-                    }
-                }
-            });
-        })();
-    </script>
+    <script src="js/index.js"></script>
 
     <!-- Product Modal -->
     <div id="productModal"
@@ -738,8 +686,7 @@
             <div class="flex flex-col space-y-1.5 text-center sm:text-left">
                 <h2 id="modalTitle" class="text-lg font-semibold leading-none tracking-tight">Nuevo Producto</h2>
                 <button
-                    class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground close-modal"
-                    onclick="closeModal()">
+                    class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground close-modal">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                         class="lucide lucide-x h-4 w-4">

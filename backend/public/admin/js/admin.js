@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api/products';
+const API_URL = '/api/products';
 const token = localStorage.getItem('token');
 
 if (!token) {
@@ -33,7 +33,7 @@ function renderTable(products) {
 
     products.forEach(product => {
         const tr = document.createElement('tr');
-        const imgUrl = product.image ? (product.image.startsWith('http') ? product.image : `http://localhost:3000${product.image}`) : 'https://placehold.co/50';
+        const imgUrl = product.image ? (product.image.startsWith('http') ? product.image : product.image) : 'https://placehold.co/50';
 
         tr.innerHTML = `
             <td><img src="${imgUrl}" alt="${product.title}"></td>

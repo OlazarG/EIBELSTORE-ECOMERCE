@@ -1,5 +1,5 @@
-const API_URL = 'http://localhost:3000/api/products';
-const STATIC_URL = 'http://localhost:3000';
+const API_URL = '/api/products';
+const STATIC_URL = '';
 
 document.addEventListener('DOMContentLoaded', async function () {
     const productsGrid = document.getElementById('productsGrid');
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         window.deleteProduct = async function (id) {
             if (!confirm('¿Eliminar producto?')) return;
             try {
-                const response = await fetch(`http://localhost:3000/api/products/${id}`, {
+                const response = await fetch(`/api/products/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

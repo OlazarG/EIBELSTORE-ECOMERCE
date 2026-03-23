@@ -9,8 +9,16 @@ const helmet = require('helmet');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Security Headers
-app.use(helmet());
+// Security Headers with custom CSP for images
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+            "img-src": ["'self'", "data:", "res.cloudinary.com", "placehold.co", "*.placehold.co"],
+            "script-src": ["'self'", "'unsafe-inline'"], // Permitiendo inline temporalmente para migración suave si fuera necesario, o mantener restrictivo si ya externalizamos todo.
+        },
+    },
+}));
 
 // Request Logger
 app.use((req, res, next) => {
@@ -26,13 +34,13 @@ if (!fs.existsSync(uploadsDir)) {
 
 // Middleware
 const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:3001',
-  process.env.CORS_ORIGIN
+    'http://localhost:3000',
+    'http://localhost:3001',
+    process.env.CORS_ORIGIN
 ].filter(Boolean);
 
 app.use(cors({
-  origin: allowedOrigins
+    origin: allowedOrigins
 }));
 
 app.use(express.json({ limit: '10kb', strict: true }));
@@ -62,8 +70,8 @@ app.use((err, req, res, next) => {
     const errorLog = `${new Date().toISOString()} - GLOBAL ERROR: ${util.inspect(err, { depth: null })}\n`;
     fs.appendFileSync(path.join(__dirname, 'error_debug.log'), errorLog);
     console.error("FULL GLOBAL ERROR:", util.inspect(err, { depth: null }));
-    
-    res.status(err.status || 500).json({ 
+
+    res.status(err.status || 500).json({
         error: 'Error interno del servidor',
         details: err.message,
         stack: process.env.NODE_ENV === 'development' ? err.stack : undefined

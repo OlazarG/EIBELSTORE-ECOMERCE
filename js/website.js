@@ -76,6 +76,41 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.location.href = 'products.html';
             });
         }
+
+        // Global Event Delegation for Product Actions
+        document.addEventListener('click', (e) => {
+            // Edit Product
+            const editBtn = e.target.closest('.btn-edit-product');
+            if (editBtn) {
+                e.stopPropagation();
+                try {
+                    const productData = JSON.parse(editBtn.dataset.product);
+                    if (window.openProductModal) window.openProductModal(productData);
+                } catch (err) { console.error("Error parsing product data", err); }
+                return;
+            }
+
+            // Delete Product
+            const deleteBtn = e.target.closest('.btn-delete-product');
+            if (deleteBtn) {
+                e.stopPropagation();
+                const id = deleteBtn.dataset.id;
+                if (window.deleteProduct) window.deleteProduct(id);
+                return;
+            }
+
+            // New Product (Sidebar)
+            if (e.target.closest('#btn-new-product')) {
+                if (window.openProductModal) window.openProductModal(null);
+                return;
+            }
+
+            // Logout (Sidebar)
+            if (e.target.closest('#btn-logout')) {
+                if (window.logout) window.logout();
+                return;
+            }
+        });
     }
 
     function changeHeroImage(direction) {
@@ -123,8 +158,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const productsGrid = document.querySelector('.products-grid');
         if (!productsGrid) return;
 
-        const API_URL = 'http://localhost:3000/api/products';
-        const STATIC_URL = 'http://localhost:3000';
+        const API_URL = '/api/products';
+        const STATIC_URL = '';
 
         let products = [];
 
@@ -233,8 +268,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         </div>
                         ${isAdmin ? `
                             <div class="flex gap-2">
-                                <button class="btn btn-outline btn-sm px-2 py-1 h-8 text-xs" onclick="event.stopPropagation(); openProductModal(${JSON.stringify(product).replace(/"/g, '&quot;')})">Editar</button>
-                                <button class="btn btn-ghost btn-sm px-2 py-1 h-8 text-xs text-destructive hover:bg-destructive/10" onclick="event.stopPropagation(); deleteProduct(${product.id})">Del</button>
+                                <button class="btn btn-outline btn-sm px-2 py-1 h-8 text-xs btn-edit-product" data-product='${JSON.stringify(product).replace(/'/g, "&apos;")}'>Editar</button>
+                                <button class="btn btn-ghost btn-sm px-2 py-1 h-8 text-xs text-destructive hover:bg-destructive/10 btn-delete-product" data-id="${product.id}">Del</button>
                             </div>
                         ` : `
                             <button class="btn btn-default btn-sm card-btn-add flex items-center shadow-sm hover:shadow-md transition-all bg-black text-white hover:bg-neutral-800" data-id="${product.id}">
@@ -328,9 +363,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     PANEL ADMIN
                 </h3>
                 <ul class="space-y-2">
-                    <li><a href="products.html" class="flex w-full items-center rounded-md px-3 py-2 text-sm font-semibold bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors">📦 Inventario Completo</a></li>
-                    <li><button onclick="openProductModal(null); return false;" class="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors text-left">➕ Nuevo Producto</button></li>
-                    <li><button onclick="logout(); return false;" class="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors text-left mt-2">🚪 Cerrar Sesión</button></li>
+                    <li><a href="backend/public/admin/dashboard.html" class="flex w-full items-center rounded-md px-3 py-2 text-sm font-semibold bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors">📦 Inventario Completo</a></li>
+                    <li><button id="btn-new-product" class="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors text-left">➕ Nuevo Producto</button></li>
+                    <li><button id="btn-logout" class="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors text-left mt-2">🚪 Cerrar Sesión</button></li>
                 </ul>
             `;
             sidebarMenu.insertBefore(adminSection, sidebarMenu.firstChild);
@@ -468,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Determine method and URL based on presence of a valid ID
         const method = id ? 'PUT' : 'POST';
-        const url = id ? `http://localhost:3000/api/products/${id}` : 'http://localhost:3000/api/products';
+        const url = id ? `/api/products/${id}` : '/api/products';
 
         console.log(`Submitting form to ${url} via ${method} with ID: ${id || 'NEW'}`);
 
@@ -494,7 +529,7 @@ document.addEventListener('DOMContentLoaded', function () {
     window.deleteProduct = async function (id) {
         if (!confirm('¿Eliminar producto?')) return;
         try {
-            const response = await fetch(`http://localhost:3000/api/products/${id}`, {
+            const response = await fetch(`/api/products/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -527,5 +562,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         });
+    }
+
+    // Programmatic Form Listener (for reliability)
+    const productForm = document.getElementById('productForm');
+    if (productForm) {
+        productForm.addEventListener('submit', window.handleFormSubmit);
     }
 });
