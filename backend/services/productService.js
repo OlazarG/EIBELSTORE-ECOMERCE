@@ -3,17 +3,25 @@ const pool = require('../config/db');
 class ProductService {
     async getAllProducts() {
         const result = await pool.query('SELECT * FROM products ORDER BY id ASC');
-        return result.rows.map(p => ({
-            ...p,
-            gallery_urls: p.gallery_urls || []
-        }));
+        return result.rows.map(p => {
+            let gallery = p.gallery_urls;
+            if (typeof gallery === 'string') {
+                try { gallery = JSON.parse(gallery); } catch (e) { gallery = []; }
+            }
+            return {
+                ...p,
+                gallery_urls: gallery || []
+            };
+        });
     }
 
     async getProductById(id) {
         const result = await pool.query('SELECT * FROM products WHERE id = $1', [id]);
         const product = result.rows[0];
-        if (product) {
-            product.gallery_urls = product.gallery_urls || [];
+        if (product && typeof product.gallery_urls === 'string') {
+            try { product.gallery_urls = JSON.parse(product.gallery_urls); } catch (e) { product.gallery_urls = []; }
+        } else if (product && !product.gallery_urls) {
+            product.gallery_urls = [];
         }
         return product;
     }
@@ -25,7 +33,7 @@ class ProductService {
             const result = await client.query(
                 `INSERT INTO products 
                 (title, category, subcategory, price, stock, description, badge, image, gallery_urls, is_active, discount_percentage) 
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11) RETURNING *`,
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
                 [
                     title,
                     category,
@@ -74,7 +82,7 @@ class ProductService {
                     description = COALESCE($6, description), 
                     badge = COALESCE($7, badge), 
                     image = COALESCE($8, image), 
-                    gallery_urls = COALESCE($9::jsonb, gallery_urls), 
+                    gallery_urls = COALESCE($9, gallery_urls), 
                     is_active = COALESCE($10, is_active), 
                     discount_percentage = COALESCE($11, discount_percentage) 
                 WHERE id = $12 RETURNING *`,
@@ -111,7 +119,11 @@ class ProductService {
 
     async deleteProduct(id) {
         const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING *', [id]);
-        return result.rows[0];
+        const product = result.rows[0];
+        if (product && typeof product.gallery_urls === 'string') {
+            try { product.gallery_urls = JSON.parse(product.gallery_urls); } catch (e) { product.gallery_urls = []; }
+        }
+        return product;
     }
 }
 

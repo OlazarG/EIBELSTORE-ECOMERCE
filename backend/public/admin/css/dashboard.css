@@ -115,6 +115,22 @@ body {
     background: var(--primary-red-light);
 }
 
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: bold;
+    transition: var(--transition);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--text-secondary);
+}
+
 /* Card Grid Layout */
 .products-grid {
     display: grid;
@@ -271,4 +287,151 @@ body {
 .btn-delete:hover {
     background: #c82333;
     border-color: #bd2130;
+}
+
+/* Modal Improvements for Mobile responsiveness */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: flex-start; /* Start from top on mobile to avoid cropping */
+    padding: 2.5rem 1rem;
+    overflow-y: auto; /* Handle long content on the parent container */
+}
+
+.modal-content {
+    background: #1e1e1e;
+    padding: 2.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 1000px;
+    position: relative;
+    margin: auto 0; /* Center vertically if small, but stay within flow if large */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.83);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 2rem;
+    font-family: var(--font-main);
+    color: white;
+    font-size: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
+.modal-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: var(--primary-red);
+    border-radius: 10px;
+}
+
+.product-form {
+    display: grid;
+    grid-template-columns: 1fr; /* Single column on mobile */
+    gap: 20px;
+}
+
+@media (min-width: 768px) {
+    .product-form {
+        grid-template-columns: repeat(2, 1fr); /* 2 columns for tablets */
+    }
+}
+
+@media (min-width: 1024px) {
+    .product-form {
+        grid-template-columns: repeat(4, 1fr); /* 4 columns for large screens */
+    }
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.form-group input, 
+.form-group select, 
+.form-group textarea {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: white;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+    font-family: var(--font-body);
+}
+
+.form-group input:focus, 
+.form-group select:focus, 
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-red);
+}
+
+.modal-content .close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    line-height: 1;
+}
+
+/* Specific span logic for form items */
+.col-span-1 { grid-column: span 1; }
+.col-span-2 { grid-column: span 2; }
+.col-span-3 { grid-column: span 3; }
+.col-span-4 { grid-column: span 4; }
+.col-span-full { grid-column: 1 / -1; }
+
+/* Mobile Responsiveness for the form */
+@media (max-width: 768px) {
+    .modal {
+        padding: 0;
+        align-items: flex-start; /* Better for scrolling from top on mobile */
+    }
+
+    .modal-content {
+        max-height: 100vh; /* Allow take up full height */
+        min-height: 100vh;
+        border-radius: 0;
+        padding: 1.5rem;
+    }
+
+    .product-form {
+        grid-template-columns: 1fr; /* Single column on mobile */
+        gap: 15px;
+    }
+
+    /* Override any grid-column spans for mobile */
+    .product-form > div,
+    .product-form .col-span-2,
+    .product-form .col-span-3,
+    .product-form .col-span-4,
+    .product-form .col-span-full {
+        grid-column: span 1 !important;
+    }
 }

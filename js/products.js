@@ -191,6 +191,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
 
             // Hover Rotate Images
+            const hasMultipleImages = product.images && product.images.length > 1;
             if (hasMultipleImages) {
                 let intervalId = null;
                 let imgIdx = 0;

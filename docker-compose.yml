@@ -1,0 +1,50 @@
+version: '3.8'
+
+# ###########################################################
+# Docker Compose para EIBELSTORE
+# ###########################################################
+# Este archivo es como un director de orquesta que maneja varios
+# contenedores al mismo tiempo (tu app, la base de datos, etc.).
+
+services:
+  # Tu aplicación Node.js
+  app:
+    # 'build: .' le dice que use el Dockerfile que está en esta carpeta.
+    build: .
+    container_name: ecomerce_app
+    ports:
+      - "3000:3000"
+    # Variables de entorno para conectar con la base de datos.
+    # Nota como en 'host' usamos 'db' (el nombre del servicio de abajo).
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=db
+      - DB_USER=usuario_ecom
+      - DB_PASSWORD=password_seguro
+      - DB_NAME=eibelstore_db
+      - DB_PORT=5432
+      - JWT_SECRET=${JWT_SECRET}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+    # Espera a que la base de datos esté lista antes de arrancar.
+    depends_on:
+      - db
+
+  # La base de datos PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: ecomerce_db
+    environment:
+      - POSTGRES_USER=usuario_ecom
+      - POSTGRES_PASSWORD=password_seguro
+      - POSTGRES_DB=eibelstore_db
+    # Los volúmenes aseguran que tus datos no se borren al apagar el contenedor.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/init.sql
+
+# Definimos los volúmenes para persistir la información.
+volumes:
+  postgres_data:

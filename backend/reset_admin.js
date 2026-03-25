@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const pool = require('./backend/config/db');
+const pool = require('./config/db');
 
 async function reset() {
     const hash = await bcrypt.hash('admin123', 10);

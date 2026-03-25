@@ -15,6 +15,8 @@ if (NODE_ENV === 'production') {
     app.set('trust proxy', 1);
 }
 
+app.use((req, res, next) => { console.log('--- RAW REQUEST RECEIVED ---', req.method, req.url); next(); });
+
 // Security Headers with custom CSP for images
 app.use(helmet({
     contentSecurityPolicy: {
@@ -90,3 +92,6 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT} [VERSION_FIX_UPLOADS]`);
 });
+
+// Force event-loop to stay alive for debugging
+setInterval(() => {}, 1000000);

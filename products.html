@@ -23,12 +23,14 @@
             backdrop-filter: blur(4px);
             animation: fadeIn 0.2s ease;
         }
+
         #refund-overlay.active {
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 1rem;
         }
+
         #refund-modal {
             background: var(--background, #fff);
             border: 1px solid rgba(212, 175, 55, 0.3);
@@ -42,6 +44,7 @@
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
             animation: slideUp 0.25s ease;
         }
+
         #refund-modal h2 {
             font-family: 'Playfair Display', serif;
             font-size: 1.5rem;
@@ -49,6 +52,7 @@
             margin: 0 0 0.25rem;
             padding-right: 2.5rem;
         }
+
         #refund-modal .refund-subtitle {
             font-size: 0.85rem;
             color: var(--muted-foreground, #888);
@@ -56,9 +60,11 @@
             padding-bottom: 1rem;
             border-bottom: 1px solid var(--border, #e5e7eb);
         }
+
         #refund-modal .refund-section {
             margin-bottom: 1.25rem;
         }
+
         #refund-modal .refund-section h3 {
             font-size: 0.95rem;
             font-weight: 700;
@@ -68,6 +74,7 @@
             gap: 0.5rem;
             margin: 0 0 0.5rem;
         }
+
         #refund-modal .refund-section h3 .num {
             background: var(--gold, #d4af37);
             color: #fff;
@@ -80,18 +87,23 @@
             font-size: 0.75rem;
             flex-shrink: 0;
         }
-        #refund-modal .refund-section p, #refund-modal .refund-section ul {
+
+        #refund-modal .refund-section p,
+        #refund-modal .refund-section ul {
             font-size: 0.875rem;
             color: var(--muted-foreground, #555);
             line-height: 1.7;
             margin: 0.25rem 0;
         }
+
         #refund-modal .refund-section ul {
             padding-left: 1.25rem;
         }
+
         #refund-modal .refund-section ul li {
             margin-bottom: 0.25rem;
         }
+
         #refund-modal .refund-tag {
             display: inline-block;
             background: rgba(212, 175, 55, 0.12);
@@ -103,6 +115,7 @@
             padding: 0.15rem 0.5rem;
             margin-bottom: 0.5rem;
         }
+
         #close-refund-modal {
             position: absolute;
             top: 1rem;
@@ -116,17 +129,32 @@
             transition: color 0.15s, background 0.15s;
             line-height: 1;
         }
+
         #close-refund-modal:hover {
             color: var(--foreground, #000);
             background: var(--muted, #f3f4f6);
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
+
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Animación de caída desde arriba para productos */
@@ -135,6 +163,7 @@
                 opacity: 0;
                 transform: translateY(-40px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -145,50 +174,81 @@
             animation: slideDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
-        .delay-100 { animation-delay: 0.1s; }
-        .delay-200 { animation-delay: 0.2s; }
-        .delay-300 { animation-delay: 0.3s; }
-        .delay-400 { animation-delay: 0.4s; }
-        .delay-500 { animation-delay: 0.5s; }
-        .delay-600 { animation-delay: 0.6s; }
-        .delay-700 { animation-delay: 0.7s; }
-        .delay-800 { animation-delay: 0.8s; }
-        
-        
+        .delay-100 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-200 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-300 {
+            animation-delay: 0.3s;
+        }
+
+        .delay-400 {
+            animation-delay: 0.4s;
+        }
+
+        .delay-500 {
+            animation-delay: 0.5s;
+        }
+
+        .delay-600 {
+            animation-delay: 0.6s;
+        }
+
+        .delay-700 {
+            animation-delay: 0.7s;
+        }
+
+        .delay-800 {
+            animation-delay: 0.8s;
+        }
+
+
         /* Mobile improvements */
         @media (max-width: 640px) {
             .card-content {
                 padding: 1rem;
             }
+
             .content-area {
                 padding-left: 0.5rem;
                 padding-right: 0.5rem;
             }
+
             #productsGrid {
                 gap: 0.5rem;
             }
-            #productsGrid > div {
+
+            #productsGrid>div {
                 padding: 0.5rem;
             }
+
             #productsGrid .p-4 {
                 padding: 0.5rem;
             }
+
             #productsGrid .text-lg {
                 font-size: 0.95rem;
             }
+
             #productsGrid .text-xs {
                 font-size: 0.7rem;
             }
+
             #productsGrid .text-lg.font-bold {
                 font-size: 1rem;
             }
         }
-        
+
         /* Very small screens */
         @media (max-width: 400px) {
             .sidebar-menu {
                 display: none;
             }
+
             h1 {
                 font-size: 1.5rem !important;
             }
@@ -263,11 +323,13 @@
         <!-- Content Area -->
         <div class="content-area flex-1 px-2 sm:px-4 md:px-8 overflow-x-hidden">
             <div class="container mx-auto max-w-7xl">
-                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight mb-6 sm:mb-8 text-center sm:text-left">CATÁLOGO EXCLUSIVO</h1>
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight mb-6 sm:mb-8 text-center sm:text-left">CATÁLOGO
+                    EXCLUSIVO</h1>
 
                 <!-- Filters Section -->
                 <div class="card mb-8">
-                    <div class="card-content p-4 sm:p-6 flex flex-col sm:flex-row gap-3 sm:gap-6 flex-wrap items-stretch sm:items-end">
+                    <div
+                        class="card-content p-4 sm:p-6 flex flex-col sm:flex-row gap-3 sm:gap-6 flex-wrap items-stretch sm:items-end">
                         <!-- Search -->
                         <div class="space-y-2 w-full sm:w-auto sm:flex-1 sm:min-w-[140px]">
                             <label class="text-sm font-medium leading-none">Buscar</label>
@@ -366,7 +428,7 @@
                                     <path
                                         d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                                 </svg>
-                                <span>WhatsApp o Llamadas +595 971970225</span>
+                                <span>WhatsApp +595 971970225</span>
                             </a>
                         </li>
                         <li>
@@ -390,11 +452,17 @@
                     <h3 class="text-sm font-semibold text-foreground uppercase tracking-widest mb-4">AYUDA
                     </h3>
                     <ul class="space-y-3 flex flex-col items-start md:items-start text-sm">
-                        
-                        <li><a href="#" id="open-refund-modal" class="hover:text-primary transition-colors flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m9 9 5 3-5 3"/></svg>
-                            Política de Reembolso
-                        </a>
+
+                        <li><a href="#" id="open-refund-modal"
+                                class="hover:text-primary transition-colors flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect width="18" height="18" x="3" y="3" rx="2" />
+                                    <path d="M9 3v18" />
+                                    <path d="m9 9 5 3-5 3" />
+                                </svg>
+                                Política de Reembolso
+                            </a>
                         </li>
 
                     </ul>
@@ -404,8 +472,8 @@
             <!-- Social Media & Copyright -->
             <div class="flex flex-col md:flex-row items-center justify-between pt-8 border-t flex-wrap gap-4">
                 <div class="flex items-center gap-4">
-                    <a href="https://facebook.com/eibelstore" target="_blank" rel="noopener noreferrer"
-                        aria-label="Facebook" class="btn btn-ghost btn-icon">
+                    <a href="https://www.facebook.com/profile.php?id=61569512262748" target="_blank"
+                        rel="noopener noreferrer" aria-label="Facebook" class="btn btn-ghost btn-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path
                                 d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -477,12 +545,11 @@
 
     <!-- Product Modal -->
     <div id="productModal"
-        class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 sm:hidden"
+        class="fixed inset-0 z-[100] bg-black/80 flex flex-col items-center justify-start p-4 overflow-y-auto"
         style="display:none;">
-        <div
-            class="fixed left-[50%] top-[50%] z-50 grid w-full max-w-4xl translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg">
+        <div class="relative bg-background w-full max-w-4xl border shadow-lg rounded-lg p-6 my-auto">
             <div class="flex flex-col space-y-1.5 text-center sm:text-left">
-                <h2 id="modalTitle" class="text-lg font-semibold leading-none tracking-tight">Nuevo Producto</h2>
+                <h2 id="modalTitle" class="text-lg font-semibold leading-none tracking-tight">Gestionar Producto</h2>
                 <button
                     class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground close-modal"
                     onclick="closeModal()">
