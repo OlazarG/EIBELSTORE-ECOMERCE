@@ -443,6 +443,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         modal.style.display = 'flex';
+        document.body.classList.add('modal-open');
     };
 
     function updateExistingImagePreviews(product) {
@@ -518,6 +519,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.closeModal = function () {
         document.getElementById('productModal').style.display = 'none';
+        document.body.classList.remove('modal-open');
         selectedFiles = []; // Clear on close
     };
 

@@ -143,11 +143,17 @@ function openModal(product = null) {
         document.getElementById('productId').value = '';
         document.getElementById('is_active').checked = true;
     }
-    if (modal) modal.style.display = 'flex';
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.classList.add('modal-open');
+    }
 }
 
 function closeModal() {
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
 }
 
 // Event Delegation for products grid

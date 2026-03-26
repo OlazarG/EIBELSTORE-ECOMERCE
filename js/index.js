@@ -14,12 +14,12 @@
             if (refundIcon) refundIcon.classList.remove('open');
         }
         if (overlay) overlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        document.body.classList.add('modal-open');
     }
 
     function closeRefundModal() {
         if (overlay) overlay.classList.remove('active');
-        document.body.style.overflow = '';
+        document.body.classList.remove('modal-open');
     }
 
     function toggleAccordion(e) {

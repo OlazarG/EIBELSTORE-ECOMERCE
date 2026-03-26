@@ -435,3 +435,14 @@ body {
         grid-column: span 1 !important;
     }
 }
+
+/* Scroll lock when modal is open */
+.modal-open {
+    overflow: hidden !important;
+    height: 100vh !important;
+    overscroll-behavior: none !important;
+}
+
+.modal {
+    overscroll-behavior: contain;
+}
