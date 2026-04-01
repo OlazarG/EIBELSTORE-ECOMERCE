@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (document.getElementById('userConfigModal')) return;
         
         const modalHtml = `
-        <div id="userConfigModal" class="fixed inset-0 z-[120] bg-black/80 flex items-center justify-center p-4 sm:p-6 overflow-y-auto" style="display:none;">
+        <div id="userConfigModal" class="fixed inset-0 z-[550] bg-black/80 flex items-center justify-center p-4 sm:p-6 overflow-y-auto" style="display:none;">
             <div class="relative bg-background w-full max-w-sm border shadow-lg rounded-lg p-6 my-4 sm:my-8 shrink-0">
                 <div class="flex flex-col text-left mb-6 relative">
                     <h2 class="text-lg font-semibold leading-none tracking-tight">Gestionar Contraseña</h2>
@@ -468,20 +468,25 @@ document.addEventListener('DOMContentLoaded', function () {
             btnManage.addEventListener('click', (e) => {
                 e.preventDefault();
                 modal.style.display = 'flex';
+                modal.style.zIndex = '550';
                 document.body.classList.add('modal-open');
                 const header = document.querySelector('header');
                 if(header) header.style.display = 'none';
                 
-                // Hide sidebar completely when opening the modal
-                const sidebar = document.querySelector('.sidebar');
-                if (sidebar && !sidebar.classList.contains('hidden')) {
-                    sidebar.classList.remove('active');
-                    sidebar.classList.add('hidden');
-                    const menuToggle = document.querySelector('.menu-toggle');
-                    if(menuToggle) {
-                        menuToggle.innerHTML = '☰';
+                // Hide all sidebars completely when opening the modal
+                document.querySelectorAll('.sidebar').forEach(sidebar => {
+                    if (!sidebar.classList.contains('hidden')) {
+                        sidebar.classList.remove('active');
+                        sidebar.classList.add('hidden');
                     }
-                }
+                });
+
+                // Ensure menu toggles are reset
+                document.querySelectorAll('.menu-toggle').forEach(toggle => {
+                    if (!toggle.querySelector('svg')) {
+                        toggle.innerHTML = '☰';
+                    }
+                });
             });
         }
 
@@ -599,9 +604,25 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         modal.style.display = 'flex';
+        modal.style.zIndex = '500'; // Ensure high z-index
         document.body.classList.add('modal-open');
         const header = document.querySelector('header');
         if(header) header.style.display = 'none';
+
+        // Hide all sidebars completely when opening the modal
+        document.querySelectorAll('.sidebar').forEach(sidebar => {
+            if (!sidebar.classList.contains('hidden')) {
+                sidebar.classList.remove('active');
+                sidebar.classList.add('hidden');
+            }
+        });
+
+        // Ensure menu toggles are reset
+        document.querySelectorAll('.menu-toggle').forEach(toggle => {
+            if (!toggle.querySelector('svg')) {
+                toggle.innerHTML = '☰';
+            }
+        });
     };
 
     function updateExistingImagePreviews(product) {
