@@ -24,6 +24,12 @@ async function migrate() {
                         'INSERT INTO users (username, password, role) VALUES ($1, $2, $3)',
                         [user.username, user.password, user.role]
                     );
+                } else {
+                    // Update existing user password and role to match seed data
+                    await client.query(
+                        'UPDATE users SET password = $1, role = $3 WHERE username = $2',
+                        [user.password, user.username, user.role]
+                    );
                 }
             }
         }

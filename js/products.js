@@ -114,8 +114,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         items.forEach((product, index) => {
             const card = document.createElement('div');
-            card.className = `group relative overflow-hidden rounded-lg border bg-background flex flex-col hover:shadow-lg transition-all cursor-pointer h-full reveal`;
-            card.style.transitionDelay = `${(index % 12) * 50}ms`; // Staggered entrance
+            card.className = `group relative overflow-hidden rounded-lg border bg-background flex flex-col hover:shadow-lg transition-all cursor-pointer h-full`;
 
             card.onclick = (e) => {
                 if (!e.target.closest('.card-btn-add, .btn-outline, .btn-ghost')) {

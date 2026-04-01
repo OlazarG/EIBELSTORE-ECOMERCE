@@ -46,3 +46,22 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+exports.updatePassword = async (req, res) => {
+    const { newPassword } = req.body;
+    const userId = req.userId;
+
+    if (!newPassword || newPassword.length < 6) {
+        return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' });
+    }
+
+    try {
+        const hash = await bcrypt.hash(newPassword, 10);
+        await pool.query('UPDATE users SET password = $1 WHERE id = $2', [hash, userId]);
+        console.log(`Password updated by user ID: ${userId}`);
+        res.status(200).json({ message: 'Contraseña actualizada correctamente' });
+    } catch (err) {
+        console.error('Error updating password:', err);
+        res.status(500).json({ message: 'Error interno del servidor al actualizar contraseña' });
+    }
+};

@@ -46,18 +46,47 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function initEvents() {
         // Mobile Menu
-        const menuToggle = document.querySelector('.menu-toggle');
+        const menuToggles = document.querySelectorAll('.menu-toggle');
         const sidebar = document.querySelector('.sidebar');
 
-        if (menuToggle && sidebar) {
-            menuToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('active');
-                sidebar.classList.toggle('hidden');
+        if (menuToggles.length > 0 && sidebar) {
+            menuToggles.forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    sidebar.classList.toggle('hidden');
 
-                if (sidebar.classList.contains('hidden')) {
-                    menuToggle.innerHTML = '☰';
-                } else {
-                    menuToggle.innerHTML = '✕';
+                    const isShown = !sidebar.classList.contains('hidden');
+                    if (isShown) {
+                        document.body.classList.add('modal-open');
+                        // Use text or icons as needed, but consistent
+                        menuToggles.forEach(t => {
+                            if (t.querySelector('svg')) {
+                                // If it has an SVG, we don't want to overwrite it with text ALWAYS
+                                // But for the main toggle we might. 
+                                // Let's just use the active class on the button itself.
+                            } else {
+                                t.innerHTML = '✕';
+                            }
+                        });
+                    } else {
+                        document.body.classList.remove('modal-open');
+                        menuToggles.forEach(t => {
+                             if (!t.querySelector('svg')) t.innerHTML = '☰';
+                        });
+                    }
+                });
+            });
+
+            // Close sidebar when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!sidebar.classList.contains('hidden') && !sidebar.contains(e.target) && !Array.from(menuToggles).some(t => t.contains(e.target))) {
+                    sidebar.classList.add('hidden');
+                    sidebar.classList.remove('active');
+                    document.body.classList.remove('modal-open');
+                    menuToggles.forEach(t => {
+                        if (!t.querySelector('svg')) t.innerHTML = '☰';
+                    });
                 }
             });
         }
@@ -108,6 +137,17 @@ document.addEventListener('DOMContentLoaded', function () {
             // Logout (Sidebar)
             if (e.target.closest('#btn-logout')) {
                 if (window.logout) window.logout();
+                return;
+            }
+
+            // Close Modals
+            if (e.target.closest('.close-modal')) {
+                if (window.closeModal) window.closeModal();
+                return;
+            }
+
+            if (e.target.id === 'productModal') {
+                if (window.closeModal) window.closeModal();
                 return;
             }
         });
@@ -225,8 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         featured.forEach((product, index) => {
             const card = document.createElement('div');
-            card.className = `group relative overflow-hidden rounded-lg border bg-background flex flex-col hover:shadow-lg transition-all cursor-pointer h-full reveal`;
-            card.style.transitionDelay = `${index * 80}ms`;
+            card.className = `group relative overflow-hidden rounded-lg border bg-background flex flex-col hover:shadow-lg transition-all cursor-pointer h-full`;
 
             card.onclick = (e) => {
                 if (!e.target.closest('.card-btn-add, .btn-outline, .btn-ghost')) {
@@ -363,13 +402,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     PANEL ADMIN
                 </h3>
                 <ul class="space-y-2">
-                    <li><a href="backend/public/admin/dashboard.html" class="flex w-full items-center rounded-md px-3 py-2 text-sm font-semibold bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors">📦 Inventario Completo</a></li>
+                    <li><button id="btn-manage-user" class="flex w-full items-center rounded-md px-3 py-2 text-sm font-semibold bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors text-left">👤 Gestionar Usuario</button></li>
                     <li><button id="btn-new-product" class="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors text-left">➕ Nuevo Producto</button></li>
                     <li><button id="btn-logout" class="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors text-left mt-2">🚪 Cerrar Sesión</button></li>
                 </ul>
             `;
             sidebarMenu.insertBefore(adminSection, sidebarMenu.firstChild);
         }
+
+        // Initialize User config modal
+        injectUserManagementModal();
 
         // 2. Update Header Login Icon to show Admin state
         const loginBtn = document.querySelector('a[href*="login.html"]');
@@ -383,6 +425,121 @@ document.addEventListener('DOMContentLoaded', function () {
             loginBtn.href = "products.html"; // Make it go to the inventory
             loginBtn.title = "Panel de Control";
         }
+    }
+
+    function injectUserManagementModal() {
+        if (document.getElementById('userConfigModal')) return;
+        
+        const modalHtml = `
+        <div id="userConfigModal" class="fixed inset-0 z-[120] bg-black/80 flex items-center justify-center p-4 sm:p-6 overflow-y-auto" style="display:none;">
+            <div class="relative bg-background w-full max-w-sm border shadow-lg rounded-lg p-6 my-4 sm:my-8 shrink-0">
+                <div class="flex flex-col text-left mb-6 relative">
+                    <h2 class="text-lg font-semibold leading-none tracking-tight">Gestionar Contraseña</h2>
+                    <button id="closeUserConfigModal" class="absolute right-0 top-0 rounded-sm opacity-70 transition-opacity hover:opacity-100">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                </div>
+                <form id="updatePasswordForm" class="space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium leading-none">Usuario (Admin)</label>
+                        <input type="text" value="admin" disabled class="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm cursor-not-allowed opacity-50">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium leading-none">Nueva Contraseña</label>
+                        <input type="password" id="newAdminPassword" required placeholder="Ingresa nueva clave" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    </div>
+                    <div class="pt-4 flex flex-col sm:flex-row gap-2 justify-end">
+                        <button type="button" id="cancelUserConfigModal" class="btn btn-outline flex-1 sm:flex-none">Cancelar</button>
+                        <button type="submit" class="btn btn-default flex-1 sm:flex-none focus:ring-2">Guardar</button>
+                    </div>
+                    <p id="passwordUpdateMsg" class="text-sm font-medium text-center mt-2" style="display:none;"></p>
+                </form>
+            </div>
+        </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        const modal = document.getElementById('userConfigModal');
+        const form = document.getElementById('updatePasswordForm');
+        const msgEl = document.getElementById('passwordUpdateMsg');
+        const btnManage = document.getElementById('btn-manage-user');
+
+        if (btnManage) {
+            btnManage.addEventListener('click', (e) => {
+                e.preventDefault();
+                modal.style.display = 'flex';
+                document.body.classList.add('modal-open');
+                const header = document.querySelector('header');
+                if(header) header.style.display = 'none';
+                
+                // Hide sidebar completely when opening the modal
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar && !sidebar.classList.contains('hidden')) {
+                    sidebar.classList.remove('active');
+                    sidebar.classList.add('hidden');
+                    const menuToggle = document.querySelector('.menu-toggle');
+                    if(menuToggle) {
+                        menuToggle.innerHTML = '☰';
+                    }
+                }
+            });
+        }
+
+        const closeFn = (e) => {
+            if (e) e.preventDefault();
+            modal.style.display = 'none';
+            // Only remove body lock if no other modals are open
+            if(document.getElementById('productModal')?.style.display !== 'flex') {
+                document.body.classList.remove('modal-open');
+                const header = document.querySelector('header');
+                if(header) header.style.display = '';
+            }
+            form.reset();
+            msgEl.style.display = 'none';
+        };
+
+        document.getElementById('closeUserConfigModal').addEventListener('click', closeFn);
+        document.getElementById('cancelUserConfigModal').addEventListener('click', closeFn);
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newPassword = document.getElementById('newAdminPassword').value;
+            
+            // disable button during fetch
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Guardando...';
+
+            try {
+                const res = await fetch('/api/auth/update-password', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ newPassword })
+                });
+                const data = await res.json();
+                
+                msgEl.style.display = 'block';
+                if (res.ok) {
+                    msgEl.style.color = '#22c55e'; // Success
+                    msgEl.textContent = '¡Contraseña actualizada correctamente!';
+                    setTimeout(closeFn, 2000);
+                } else {
+                    msgEl.style.color = '#ef4444'; // Error
+                    msgEl.textContent = data.message || 'Error al actualizar';
+                }
+            } catch (err) {
+                console.error(err);
+                msgEl.style.display = 'block';
+                msgEl.style.color = '#ef4444';
+                msgEl.textContent = 'Error de conexión';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Guardar';
+            }
+        });
     }
 
     window.logout = function () {
@@ -438,12 +595,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const files = Array.from(e.target.files);
             selectedFiles = [...selectedFiles, ...files];
             updateImagePreviews();
-            // Clear input so same file can be selected again if needed (though we track in array)
             newFileInput.value = '';
         });
 
         modal.style.display = 'flex';
         document.body.classList.add('modal-open');
+        const header = document.querySelector('header');
+        if(header) header.style.display = 'none';
     };
 
     function updateExistingImagePreviews(product) {
@@ -518,8 +676,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     window.closeModal = function () {
-        document.getElementById('productModal').style.display = 'none';
-        document.body.classList.remove('modal-open');
+        const modal = document.getElementById('productModal');
+        if(modal) modal.style.display = 'none';
+        
+        if(document.getElementById('userConfigModal')?.style.display !== 'flex') {
+            document.body.classList.remove('modal-open');
+            const header = document.querySelector('header');
+            if(header) header.style.display = '';
+        }
         selectedFiles = []; // Clear on close
     };
 
@@ -617,5 +781,72 @@ document.addEventListener('DOMContentLoaded', function () {
     const productForm = document.getElementById('productForm');
     if (productForm) {
         productForm.addEventListener('submit', window.handleFormSubmit);
+    }
+
+    // --- Refund Modal Logic (Moved from index.js) ---
+    initRefundModal();
+
+    function initRefundModal() {
+        const overlay = document.getElementById('refund-overlay');
+        const openBtn = document.getElementById('open-refund-modal');
+        const closeBtn = document.getElementById('close-refund-modal');
+        const accordionBtn = document.getElementById('toggle-refund-accordion');
+        const accordionContent = document.getElementById('refund-accordion-content');
+        const refundIcon = accordionBtn ? accordionBtn.querySelector('.refund-icon') : null;
+
+        if (!overlay || !openBtn) {
+            console.log('Refund modal elements not found, skipping init');
+            return;
+        }
+
+        function openRefundModal(e) {
+            if (e) e.preventDefault();
+            // Close accordion if open when opening modal
+            if (accordionContent && !accordionContent.classList.contains('hidden')) {
+                accordionContent.classList.add('hidden');
+                if (refundIcon) refundIcon.classList.remove('open');
+            }
+            if (overlay) overlay.classList.add('active');
+            document.body.classList.add('modal-open');
+        }
+
+        function closeRefundModal() {
+            if (overlay) overlay.classList.remove('active');
+            // Only remove modal-open if no other modal is open
+            const productModal = document.getElementById('productModal');
+            if (!productModal || productModal.style.display === 'none') {
+                document.body.classList.remove('modal-open');
+            }
+        }
+
+        function toggleAccordion(e) {
+            if (e) e.preventDefault();
+            // Close modal if open when toggling accordion
+            if (overlay && overlay.classList.contains('active')) {
+                closeRefundModal();
+            }
+            if (accordionContent) accordionContent.classList.toggle('hidden');
+            if (refundIcon) refundIcon.classList.toggle('open');
+        }
+
+        openBtn.addEventListener('click', openRefundModal);
+        if (closeBtn) closeBtn.addEventListener('click', closeRefundModal);
+        if (accordionBtn) accordionBtn.addEventListener('click', toggleAccordion);
+        
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) closeRefundModal();
+        });
+
+        // Global Key Listener for ESC
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeRefundModal();
+                if (typeof window.closeModal === 'function') window.closeModal();
+                if (accordionContent && !accordionContent.classList.contains('hidden')) {
+                    accordionContent.classList.add('hidden');
+                    if (refundIcon) refundIcon.classList.remove('open');
+                }
+            }
+        });
     }
 });

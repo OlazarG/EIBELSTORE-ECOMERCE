@@ -335,3 +335,66 @@ async function deleteProduct(id) {
         console.error(e);
     }
 }
+
+// --- Navigation View Switching ---
+const navInventoryBtn = document.getElementById('navInventoryBtn');
+const navUserBtn = document.getElementById('navUserBtn');
+const productsView = document.getElementById('productsView');
+const userManagementView = document.getElementById('userManagementView');
+
+if (navInventoryBtn && navUserBtn) {
+    navInventoryBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        navInventoryBtn.classList.add('active');
+        navUserBtn.classList.remove('active');
+        productsView.style.display = 'block';
+        userManagementView.style.display = 'none';
+        loadProducts();
+    });
+
+    navUserBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        navUserBtn.classList.add('active');
+        navInventoryBtn.classList.remove('active');
+        userManagementView.style.display = 'block';
+        productsView.style.display = 'none';
+    });
+}
+
+// --- Update Password Form Handling ---
+const updatePasswordForm = document.getElementById('updatePasswordForm');
+if (updatePasswordForm) {
+    updatePasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newPassword = document.getElementById('newAdminPassword').value;
+        const msgEl = document.getElementById('passwordUpdateMsg');
+        
+        try {
+            const res = await fetch('/api/auth/update-password', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ newPassword })
+            });
+            const data = await res.json();
+            
+            msgEl.style.display = 'block';
+            if (res.ok) {
+                msgEl.style.color = '#4cd137'; // success color matches retro theme slightly
+                msgEl.textContent = 'Contraseña actualizada correctamente';
+                updatePasswordForm.reset();
+                setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
+            } else {
+                msgEl.style.color = '#ff4757'; // error color
+                msgEl.textContent = data.message || 'Error al actualizar contraseña';
+            }
+        } catch (error) {
+            console.error(error);
+            msgEl.style.display = 'block';
+            msgEl.style.color = '#ff4757';
+            msgEl.textContent = 'Error de conexión';
+        }
+    });
+}

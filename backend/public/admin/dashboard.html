@@ -28,7 +28,8 @@
             <div class="sidebar-section">
                 <h4>ADMIN</h4>
                 <ul>
-                    <li><a href="#" class="active">📦 Inventario</a></li>
+                    <li><a href="#" class="active" id="navInventoryBtn">📦 Inventario</a></li>
+                    <li><a href="#" id="navUserBtn">👤 Gestionar Usuario</a></li>
                     <li><a href="#">📊 Manage Statistics</a></li>
                 </ul>
             </div>
@@ -41,13 +42,37 @@
         </div>
 
         <div class="main-content">
-            <div class="header">
-                <h1>Manage your products</h1>
-                <button class="btn-primary" id="addProductBtn">Add Product ⊕</button>
+            <!-- Products View -->
+            <div id="productsView">
+                <div class="header">
+                    <h1>Manage your products</h1>
+                    <button class="btn-primary" id="addProductBtn">Add Product ⊕</button>
+                </div>
+
+                <div id="productsGrid" class="products-grid">
+                    <!-- Products will be loaded here -->
+                </div>
             </div>
 
-            <div id="productsGrid" class="products-grid">
-                <!-- Products will be loaded here -->
+            <!-- User Management View -->
+            <div id="userManagementView" style="display: none;">
+                <div class="header">
+                    <h1>Gestionar Usuario</h1>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); max-width: 500px; margin-top: 20px;">
+                    <form id="updatePasswordForm" class="product-form">
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label>Usuario (Admin)</label>
+                            <input type="text" value="admin" disabled style="background: rgba(0,0,0,0.5); color: #999; cursor: not-allowed;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label>Nueva Contraseña</label>
+                            <input type="password" id="newAdminPassword" required placeholder="Ingresa la nueva contraseña">
+                        </div>
+                        <button type="submit" class="btn-primary" style="width: 100%;">Guardar Contraseña</button>
+                        <p id="passwordUpdateMsg" style="margin-top: 15px; text-align: center; display: none; font-size: 0.9rem;"></p>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

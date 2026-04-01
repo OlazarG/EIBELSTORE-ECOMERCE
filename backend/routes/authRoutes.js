@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
 const authController = require('../controllers/authController');
+const authMiddleware = require('../middleware/authMiddleware');
+const verifyRole = require('../middleware/roleMiddleware');
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
@@ -12,5 +14,6 @@ const authLimiter = rateLimit({
 });
 
 router.post('/login', authLimiter, authController.login);
+router.put('/update-password', authMiddleware, verifyRole('admin'), authController.updatePassword);
 
 module.exports = router;

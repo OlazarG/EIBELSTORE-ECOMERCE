@@ -2201,8 +2201,8 @@ body,
   }
 }
 /* Scroll Reveal Animations */
-.reveal { opacity: 0; transform: translateY(-40px); transition: opacity 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); will-change: transform, opacity; }
-.reveal.active { opacity: 1; transform: translateY(0); }
+.reveal { opacity: 1; transform: none; }
+.reveal.active { opacity: 1; transform: none; }
 .fade-out { opacity: 0 !important; transform: scale(0.95) translateY(10px) !important; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important; }
 
 /* --- Checkout Modal & Overlay --- */
@@ -2230,4 +2230,21 @@ body,
 
 #productModal {
     overscroll-behavior: contain;
+}
+
+/* Mobile Sidebar Fix */
+@media (max-width: 767px) {
+    .sidebar.active {
+        display: flex !important;
+        position: fixed !important;
+        top: 5rem !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        height: calc(100vh - 5rem) !important;
+        z-index: 90 !important;
+        background-color: hsl(var(--background)) !important;
+        overflow-y: auto !important;
+        border-right: none !important;
+    }
 }
