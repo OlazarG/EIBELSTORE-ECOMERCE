@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const mainImgEl = document.createElement('img');
         mainImgEl.src = images[0];
-        mainImgEl.className = "w-full h-full object-contain filter drop-shadow-2xl transition-all duration-300";
+        mainImgEl.className = "w-full h-auto object-cover rounded-xl transition-all duration-300";
         mainImgEl.onerror = () => { mainImgEl.src = 'https://placehold.co/500x500?text=No+Image'; };
         imgContainer.appendChild(mainImgEl);
 
