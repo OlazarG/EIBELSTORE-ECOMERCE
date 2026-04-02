@@ -15,7 +15,11 @@ if (NODE_ENV === 'production') {
     app.set('trust proxy', 1);
 }
 
-app.use((req, res, next) => { console.log('--- RAW REQUEST RECEIVED ---', req.method, req.url); next(); });
+// Raw Request logger removed for performance, moved to development only if needed
+if (NODE_ENV === 'development') {
+    app.use((req, res, next) => { console.log('--- RAW REQUEST RECEIVED ---', req.method, req.url); next(); });
+}
+
 
 // Security Headers with custom CSP for images
 app.use(helmet({
@@ -28,11 +32,14 @@ app.use(helmet({
     },
 }));
 
-// Request Logger
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    next();
-});
+// Request Logger (Only in development)
+if (NODE_ENV === 'development') {
+    app.use((req, res, next) => {
+        console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+        next();
+    });
+}
+
 
 // Ensure uploads & logs directories exist
 const uploadsDir = path.join(__dirname, 'uploads');

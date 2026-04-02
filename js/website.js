@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             };
 
-            const badgeHtml = product.badge ? `<div class="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-sm z-10 shadow-sm">${product.badge}</div>` : '';
+            const badgeHtml = product.badge ? `<div class="absolute text-white font-bold px-3 py-1 rounded-sm shadow-sm uppercase" style="background-color: #ef4444; top: 12px; right: 12px; z-index: 20; font-size: 12px; line-height: 1.2;">${product.badge}</div>` : '';
             const statusBadgeHtml = isAdmin ? `
                 <div class="absolute z-20 px-2 py-1 rounded-br-lg shadow-sm text-[10px] font-bold text-white tracking-tight" 
                      style="top: 0; left: 0; background-color: ${product.is_active !== false ? '#22c55e' : '#ef4444'};">
@@ -286,12 +286,51 @@ document.addEventListener('DOMContentLoaded', function () {
             const displayImage = product.image || 'https://placehold.co/300x300?text=No+Image';
             const imgId = `prod-img-${product.id}`;
 
+            let galleryHtml = '';
+            let dotsHtml = '';
+
+            if (hasMultipleImages) {
+                // Generar HTML para cada imagen de la galería
+                galleryHtml = product.images.map((img, i) => `
+                    <div class="w-full h-full flex-shrink-0 snap-center flex items-center justify-center bg-muted/30 relative">
+                        <img ${i === 0 ? `id="${imgId}"` : ''} src="${img}" alt="${product.title || 'Producto'}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-all duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
+                    </div>
+                `).join('');
+                
+                // Generar los dots tipo INSTAGRAM (Puntos puros con estilos inline GARANTIZADOS)
+                dotsHtml = `
+                <div class="absolute w-full pointer-events-none" id="dots-${product.id}" 
+                     style="bottom: 12px; left: 0; z-index: 50; filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5)); display: flex; justify-content: center;">
+                    <div style="display: flex; gap: 6px;">
+                        ${product.images.map((_, idx) => `
+                            <div class="dot-item" 
+                                 style="width: 6px; height: 6px; border-radius: 50%; background-color: #ffffff; 
+                                        transition: opacity 0.2s ease-in-out; opacity: ${idx === 0 ? '1' : '0.4'};"></div>
+                        `).join('')}
+                    </div>
+                </div>
+                `;
+            } else {
+                // Solo hay una imagen principal
+                galleryHtml = `
+                    <div class="w-full h-full flex-shrink-0 snap-center flex items-center justify-center bg-muted/30 relative">
+                        <img id="${imgId}" src="${displayImage}" alt="${product.title || 'Producto'}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-all duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
+                    </div>
+                `;
+            }
+
             card.innerHTML = `
-                <div class="relative w-full aspect-square bg-muted/30 overflow-hidden flex items-center justify-center">
-                    <img id="${imgId}" src="${displayImage}" alt="${product.title}" class="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-all duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
+                <div class="relative w-full aspect-square overflow-hidden group">
+                    <!-- Badges -->
                     ${badgeHtml}
-                    ${product.discount_percentage > 0 ? `<div class="absolute top-10 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-sm z-10 shadow-sm">-${product.discount_percentage}%</div>` : ''}
+                    ${product.discount_percentage > 0 ? `<div class="absolute text-white font-bold px-3 py-1 rounded-sm shadow-sm" style="background-color: #ef4444; top: 50%; right: 12px; transform: translateY(-50%); z-index: 20; font-size: 12px; line-height: 1.2;">-${product.discount_percentage}%</div>` : ''}
                     ${statusBadgeHtml}
+                    ${dotsHtml}
+
+                    <!-- Contenedor Scroll (Swipe móvil) -->
+                    <div id="scroll-container-${product.id}" class="flex w-full h-full overflow-x-auto snap-x snap-mandatory scrollbar-hide scroll-smooth">
+                        ${galleryHtml}
+                    </div>
                 </div>
                 <div class="p-4 flex flex-col flex-1">
                     <p class="text-xs uppercase tracking-widest text-primary mb-1 font-semibold">${product.category}</p>
@@ -336,14 +375,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
             }
 
-            // Hover Rotate Images
+            // Hover Rotate Images & Scroll Dots
             if (hasMultipleImages) {
                 let intervalId = null;
                 let imgIdx = 0;
                 const imgEl = document.getElementById(imgId);
 
+                // Desktop hover effect
                 card.addEventListener('mouseenter', () => {
-                    if (intervalId) return;
+                    if (intervalId || window.innerWidth < 768) return; // Only on desktop
                     intervalId = setInterval(() => {
                         imgEl.style.opacity = 0;
                         setTimeout(() => {
@@ -358,15 +398,38 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (intervalId) {
                         clearInterval(intervalId);
                         intervalId = null;
+                        imgEl.style.opacity = 0;
+                        setTimeout(() => {
+                            imgIdx = 0;
+                            imgEl.src = displayImage;
+                            imgEl.style.opacity = 1;
+                        }, 200);
                     }
-                    imgEl.style.opacity = 0;
-                    setTimeout(() => {
-                        imgIdx = 0;
-                        imgEl.src = displayImage;
-                        imgEl.style.opacity = 1;
-                    }, 200);
                 });
+
+                // Mobile Swipe Dots Update
+                const scrollContainer = card.querySelector(`#scroll-container-${product.id}`);
+                const dotsContainer = card.querySelector(`#dots-${product.id}`);
+                
+                if (scrollContainer && dotsContainer) {
+                    scrollContainer.addEventListener('scroll', () => {
+                        const scrollLeft = scrollContainer.scrollLeft;
+                        const width = scrollContainer.clientWidth;
+                        if(width > 0) {
+                            const activeIndex = Math.round(scrollLeft / width);
+                            const dots = dotsContainer.querySelectorAll('.dot-item');
+                            dots.forEach((dot, idx) => {
+                                if (idx === activeIndex) {
+                                    dot.style.opacity = '1';
+                                } else {
+                                    dot.style.opacity = '0.4';
+                                }
+                            });
+                        }
+                    }, { passive: true });
+                }
             }
+
         });
 
         // Initialize reveal for new cards

@@ -68,7 +68,48 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         document.getElementById('catDisplay').textContent = product.category || 'Sin Categoría';
-        document.getElementById('descDisplay').textContent = product.description || 'Sin descripción';
+        
+        // Formateador inteligente para la descripción (soporta listas con - o *)
+        const descText = product.description || 'Sin descripción';
+        const descDisplay = document.getElementById('descDisplay');
+        
+        if (descText.includes('-') || descText.includes('*') || descText.includes('\n')) {
+            const lines = descText.split('\n');
+            let isList = false;
+            let html = '';
+            
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                // Si la línea empieza con un guión o asterisco, es un elemento de lista
+                if (trimmed.startsWith('-') || trimmed.startsWith('*')) {
+                    if (!isList) {
+                        html += '<ul style="list-style-type: disc; padding-left: 20px; line-height: 1.6; margin-bottom: 1rem; color: inherit; opacity: 0.9;">';
+                        isList = true;
+                    }
+                    // Soporte simple para **negritas** estilo markdown "Diseño:**" 
+                    let content = trimmed.substring(1).trim();
+                    content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    html += `<li style="margin-bottom: 0.3rem;">${content}</li>`;
+                } else if (trimmed !== '') {
+                    if (isList) {
+                        html += '</ul>';
+                        isList = false;
+                    }
+                    let content = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    html += `<p style="margin-bottom: 0.5rem; line-height: 1.6; color: inherit; opacity: 0.9;">${content}</p>`;
+                } else {
+                    if (isList) {
+                        html += '</ul>';
+                        isList = false;
+                    }
+                    html += '<div style="height: 0.5rem;"></div>';
+                }
+            });
+            if (isList) html += '</ul>';
+            descDisplay.innerHTML = html;
+        } else {
+            descDisplay.innerHTML = `<p style="line-height: 1.6; opacity: 0.9;">${descText}</p>`;
+        }
 
         const addBtn = document.querySelector('.btn-add');
         if (addBtn) {
