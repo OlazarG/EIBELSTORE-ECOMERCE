@@ -137,6 +137,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             let galleryHtml = '';
             let dotsHtml = '';
+            const hasMultipleImages = product.images && product.images.length > 1;
 
             if (hasMultipleImages) {
                 // Generar HTML para cada imagen de la galería
